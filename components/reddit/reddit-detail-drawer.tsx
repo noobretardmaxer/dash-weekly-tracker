@@ -7,8 +7,9 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import type { RedditMentionRow } from "@/lib/mock-data/reddit";
-import { REDDIT_OWNERS } from "@/components/reddit/reddit-columns";
+import { STATUS_LABELS, type RedditMentionRow } from "@/lib/api/reddit";
+import { useUsers } from "@/lib/hooks/queries/use-users";
+import { useUpdateRedditMention } from "@/lib/hooks/mutations/use-update-reddit-mention";
 import { formatDateFull } from "@/lib/utils/format";
 
 export function RedditDetailDrawer({
@@ -22,7 +23,8 @@ export function RedditDetailDrawer({
 }) {
   const [suggestedReply, setSuggestedReply] = useState(row.suggestedReply);
   const [internalNotes, setInternalNotes] = useState("");
-  const [owner, setOwner] = useState(row.owner);
+  const { data: users } = useUsers();
+  const updateMention = useUpdateRedditMention();
 
   return (
     <Drawer
@@ -88,7 +90,7 @@ export function RedditDetailDrawer({
               </div>
               <div className="pb-4">
                 <div className="flex items-center gap-2">
-                  <Badge variant="outline">{event.status}</Badge>
+                  <Badge variant="outline">{STATUS_LABELS[event.status] ?? event.status}</Badge>
                   <span className="text-xs text-muted-foreground">{event.actor}</span>
                 </div>
                 <p className="mt-1 text-xs text-muted-foreground">{formatDateFull(new Date(event.date))}</p>
@@ -102,14 +104,17 @@ export function RedditDetailDrawer({
 
       <div>
         <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">Assigned Owner</p>
-        <Select value={owner} onValueChange={setOwner}>
+        <Select
+          value={row.ownerId ?? ""}
+          onValueChange={(newId) => updateMention.mutate({ id: row.id, patch: { ownerId: newId || null } })}
+        >
           <SelectTrigger className="w-full">
-            <SelectValue />
+            <SelectValue placeholder="Unassigned" />
           </SelectTrigger>
           <SelectContent>
-            {REDDIT_OWNERS.map((name) => (
-              <SelectItem key={name} value={name}>
-                {name}
+            {(users ?? []).map((user) => (
+              <SelectItem key={user.id} value={user.id}>
+                {user.name}
               </SelectItem>
             ))}
           </SelectContent>

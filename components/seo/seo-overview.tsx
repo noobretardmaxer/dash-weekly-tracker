@@ -4,38 +4,26 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { ChartCard } from "@/components/primitives/chart-card";
 import { KpiCard } from "@/components/primitives/kpi-card";
 import { DataTable } from "@/components/primitives/data-table";
+import { ErrorState } from "@/components/primitives/error-state";
+import { KpiCardSkeleton } from "@/components/primitives/skeletons/kpi-card-skeleton";
+import { ChartCardSkeleton } from "@/components/primitives/skeletons/chart-card-skeleton";
+import { TableSkeleton } from "@/components/primitives/skeletons/table-skeleton";
 import { AppLineChart } from "@/components/charts/line-chart";
 import { AppBarChart } from "@/components/charts/bar-chart";
 import { useDateRange } from "@/lib/hooks/use-date-range";
-import { sliceLastNDays, getPreviousPeriod, buildKpiMetric } from "@/lib/mock-data/utils";
-import {
-  organicTrafficSeries,
-  organicKeywordsSeries,
-  domainRatingSeries,
-  backlinksSeries,
-  referringDomainsSeries,
-  newBacklinksSeries,
-  lostBacklinksSeries,
-  seoTopPages,
-  fastestGrowingKeywords,
-  losingKeywords,
-} from "@/lib/mock-data/seo";
-import { keywordRankings } from "@/lib/mock-data/keywords";
+import { useSeoOverview } from "@/lib/hooks/queries/use-seo-overview";
+import { useKeywordRankings } from "@/lib/hooks/queries/use-keyword-rankings";
+import type { SeoTopPage, KeywordRankingRow } from "@/lib/api/seo";
 import { formatCompactNumber, formatPercent } from "@/lib/utils/format";
 
-type TopPageRow = (typeof seoTopPages)[number];
-
-const topPagesColumns: ColumnDef<TopPageRow, unknown>[] = [
+const topPagesColumns: ColumnDef<SeoTopPage, unknown>[] = [
   { accessorKey: "page", header: "Page" },
   { accessorKey: "organicTraffic", header: "Organic Traffic", cell: ({ getValue }) => formatCompactNumber(getValue<number>()) },
   { accessorKey: "keywords", header: "Keywords" },
   { accessorKey: "avgPosition", header: "Avg Position", cell: ({ getValue }) => `#${getValue<number>().toFixed(1)}` },
 ];
 
-const topKeywords = [...keywordRankings].sort((a, b) => b.clicks - a.clicks).slice(0, 15);
-type TopKeywordRow = (typeof topKeywords)[number];
-
-const topKeywordsColumns: ColumnDef<TopKeywordRow, unknown>[] = [
+const topKeywordsColumns: ColumnDef<KeywordRankingRow, unknown>[] = [
   { accessorKey: "keyword", header: "Keyword" },
   { accessorKey: "currentPosition", header: "Position", cell: ({ getValue }) => `#${getValue<number>()}` },
   { accessorKey: "searchVolume", header: "Volume", cell: ({ getValue }) => formatCompactNumber(getValue<number>()) },
@@ -45,15 +33,56 @@ const topKeywordsColumns: ColumnDef<TopKeywordRow, unknown>[] = [
 
 export function SeoOverview() {
   const { days } = useDateRange();
+  const { data, isLoading, isError, refetch } = useSeoOverview({ days });
+  const {
+    data: topKeywords,
+    isLoading: isTopKeywordsLoading,
+    isError: isTopKeywordsError,
+    refetch: refetchTopKeywords,
+  } = useKeywordRankings({ sort: "clicks:desc", pageSize: 15 });
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {Array.from({ length: 7 }).map((_, i) => (
+            <KpiCardSkeleton key={i} />
+          ))}
+        </div>
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <ChartCardSkeleton key={i} />
+          ))}
+        </div>
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          {Array.from({ length: 2 }).map((_, i) => (
+            <ChartCardSkeleton key={i} />
+          ))}
+        </div>
+        <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+          <TableSkeleton />
+          <TableSkeleton />
+        </div>
+      </div>
+    );
+  }
+
+  if (isError || !data) {
+    return (
+      <div className="space-y-6">
+        <ErrorState onRetry={() => refetch()} />
+      </div>
+    );
+  }
 
   const cards = [
-    buildKpiMetric({ id: "organic-traffic", label: "Organic Traffic", format: "compact", fullSeries: organicTrafficSeries, rangeDays: days, aggregate: "sum" }),
-    buildKpiMetric({ id: "organic-keywords", label: "Organic Keywords", format: "compact", fullSeries: organicKeywordsSeries, rangeDays: days, aggregate: "last" }),
-    buildKpiMetric({ id: "domain-rating", label: "Domain Rating", format: "number", fullSeries: domainRatingSeries, rangeDays: days, aggregate: "last" }),
-    buildKpiMetric({ id: "backlinks", label: "Backlinks", format: "compact", fullSeries: backlinksSeries, rangeDays: days, aggregate: "last" }),
-    buildKpiMetric({ id: "referring-domains", label: "Referring Domains", format: "compact", fullSeries: referringDomainsSeries, rangeDays: days, aggregate: "last" }),
-    buildKpiMetric({ id: "lost-backlinks", label: "Lost Backlinks", format: "number", fullSeries: lostBacklinksSeries, rangeDays: days, aggregate: "sum", positiveIsGood: false }),
-    buildKpiMetric({ id: "new-backlinks", label: "New Backlinks", format: "number", fullSeries: newBacklinksSeries, rangeDays: days, aggregate: "sum" }),
+    data.kpis.organicTraffic,
+    data.kpis.organicKeywords,
+    data.kpis.domainRating,
+    data.kpis.backlinks,
+    data.kpis.referringDomains,
+    data.kpis.lostBacklinks,
+    data.kpis.newBacklinks,
   ];
 
   return (
@@ -68,8 +97,8 @@ export function SeoOverview() {
         <ChartCard title="Traffic Growth">
           {({ compare, height }) => (
             <AppLineChart
-              data={sliceLastNDays(organicTrafficSeries, days)}
-              previousData={getPreviousPeriod(organicTrafficSeries, days)}
+              data={data.charts.organicTraffic.current}
+              previousData={data.charts.organicTraffic.previous}
               compare={compare}
               height={height}
               seriesLabel="Organic Traffic"
@@ -80,8 +109,8 @@ export function SeoOverview() {
         <ChartCard title="Keyword Growth">
           {({ compare, height }) => (
             <AppLineChart
-              data={sliceLastNDays(organicKeywordsSeries, days)}
-              previousData={getPreviousPeriod(organicKeywordsSeries, days)}
+              data={data.charts.organicKeywords.current}
+              previousData={data.charts.organicKeywords.previous}
               compare={compare}
               height={height}
               seriesLabel="Keywords"
@@ -92,8 +121,8 @@ export function SeoOverview() {
         <ChartCard title="Backlink Growth">
           {({ compare, height }) => (
             <AppLineChart
-              data={sliceLastNDays(backlinksSeries, days)}
-              previousData={getPreviousPeriod(backlinksSeries, days)}
+              data={data.charts.backlinks.current}
+              previousData={data.charts.backlinks.previous}
               compare={compare}
               height={height}
               seriesLabel="Backlinks"
@@ -107,7 +136,7 @@ export function SeoOverview() {
         <ChartCard title="Fastest Growing Keywords" showCompareControl={false}>
           {({ height }) => (
             <AppBarChart
-              data={fastestGrowingKeywords.map((k) => ({ name: k.keyword, value: k.positionChange }))}
+              data={data.tables.fastestGrowingKeywords.map((k) => ({ name: k.keyword, value: k.positionChange }))}
               height={height}
               layout="horizontal"
               barColor="var(--success)"
@@ -118,7 +147,7 @@ export function SeoOverview() {
         <ChartCard title="Losing Keywords" showCompareControl={false}>
           {({ height }) => (
             <AppBarChart
-              data={losingKeywords.map((k) => ({ name: k.keyword, value: k.positionChange }))}
+              data={data.tables.losingKeywords.map((k) => ({ name: k.keyword, value: k.positionChange }))}
               height={height}
               layout="horizontal"
               barColor="var(--danger)"
@@ -131,11 +160,22 @@ export function SeoOverview() {
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
         <div>
           <h3 className="mb-3 text-sm font-medium">Top Pages</h3>
-          <DataTable columns={topPagesColumns} data={seoTopPages} searchPlaceholder="Search pages…" exportFilename="seo-top-pages" />
+          <DataTable columns={topPagesColumns} data={data.tables.topPages} searchPlaceholder="Search pages…" exportFilename="seo-top-pages" />
         </div>
         <div>
           <h3 className="mb-3 text-sm font-medium">Top Keywords</h3>
-          <DataTable columns={topKeywordsColumns} data={topKeywords} searchPlaceholder="Search keywords…" exportFilename="seo-top-keywords" />
+          {isTopKeywordsLoading ? (
+            <TableSkeleton />
+          ) : isTopKeywordsError || !topKeywords ? (
+            <ErrorState onRetry={() => refetchTopKeywords()} />
+          ) : (
+            <DataTable
+              columns={topKeywordsColumns}
+              data={topKeywords}
+              searchPlaceholder="Search keywords…"
+              exportFilename="seo-top-keywords"
+            />
+          )}
         </div>
       </div>
     </div>

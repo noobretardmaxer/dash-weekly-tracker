@@ -1,0 +1,408 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Core / cross-cutting
+// ---------------------------------------------------------------------------
+
+enum UserRole {
+  admin
+  viewer
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String
+  initials  String
+  role      UserRole @default(viewer)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  ownedRedditMentions RedditMention[]
+  resolvedAlerts      Alert[]
+  updatedSettings     Setting[]
+
+  @@map("users")
+}
+
+model Setting {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  value       Json
+  updatedById String?
+  updatedBy   User?    @relation(fields: [updatedById], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("settings")
+}
+
+enum JobStatus {
+  success
+  failure
+  running
+}
+
+model Job {
+  id             String    @id @default(uuid())
+  name           String    @unique
+  cronExpr       String
+  enabled        Boolean   @default(true)
+  lastRunAt      DateTime?
+  nextRunAt      DateTime?
+  lastDurationMs Int?
+  lastStatus     JobStatus?
+  lastError      String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  syncLogs SyncLog[]
+
+  @@map("jobs")
+}
+
+enum SyncStatus {
+  success
+  failure
+  partial
+}
+
+enum IntegrationName {
+  posthog
+  gsc
+  ahrefs
+  twitter
+  discord
+  reddit
+}
+
+model SyncLog {
+  id               String          @id @default(uuid())
+  jobId            String?
+  job              Job?            @relation(fields: [jobId], references: [id])
+  integration      IntegrationName
+  requestId        String
+  startedAt        DateTime
+  finishedAt       DateTime?
+  durationMs       Int?
+  status           SyncStatus
+  recordsProcessed Int?
+  errorMessage     String?
+  createdAt        DateTime        @default(now())
+
+  @@index([integration, startedAt])
+  @@map("sync_logs")
+}
+
+enum AlertType {
+  traffic_drop
+  keyword_drop
+  backlinks_lost
+  activation_drop
+  signups_drop
+  mention_spike
+}
+
+enum AlertSeverity {
+  info
+  warning
+  critical
+}
+
+enum AlertStatus {
+  open
+  acknowledged
+  resolved
+}
+
+model Alert {
+  id             String        @id @default(uuid())
+  type           AlertType
+  severity       AlertSeverity
+  title          String
+  message        String
+  metricSource   String
+  currentValue   Float
+  previousValue  Float
+  deltaPct       Float
+  status         AlertStatus   @default(open)
+  resolvedById   String?
+  resolvedBy     User?         @relation(fields: [resolvedById], references: [id])
+  resolvedAt     DateTime?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@index([status, createdAt])
+  @@index([type])
+  @@map("alerts")
+}
+
+enum ReportStatus {
+  Ready
+  Generating
+  Failed
+}
+
+model Report {
+  id          String       @id @default(uuid())
+  name        String
+  type        String
+  status      ReportStatus @default(Generating)
+  periodStart DateTime
+  periodEnd   DateTime
+  payload     Json
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([createdAt])
+  @@index([type])
+  @@map("reports")
+}
+
+// ---------------------------------------------------------------------------
+// Domain metrics — one row per day unless noted
+// ---------------------------------------------------------------------------
+
+model WebsiteMetric {
+  id                    String   @id @default(uuid())
+  date                  DateTime @db.Date
+  visitors              Int
+  uniqueVisitors        Int
+  returningVisitors     Int
+  signups               Int
+  activationRate        Float
+  avgSessionDurationSec Int
+  bounceRate            Float
+  trafficSources        Json
+  deviceBreakdown       Json
+  countryBreakdown      Json
+  topLandingPages       Json
+  topExitPages          Json
+  activationFunnel      Json
+  conversionFunnel      Json
+  source                String   @default("mock")
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@unique([date])
+  @@index([date])
+  @@map("website_metrics")
+}
+
+model SearchConsoleMetric {
+  id               String   @id @default(uuid())
+  date             DateTime @db.Date
+  clicks           Int
+  impressions      Int
+  ctr              Float
+  avgPosition      Float
+  topQueries       Json
+  topPages         Json
+  countries        Json
+  devices          Json
+  searchAppearance Json
+  source           String   @default("mock")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@unique([date])
+  @@index([date])
+  @@map("search_console_metrics")
+}
+
+model SeoMetric {
+  id                     String   @id @default(uuid())
+  date                   DateTime @db.Date
+  organicTraffic         Int
+  organicKeywords        Int
+  domainRating           Float
+  backlinks              Int
+  referringDomains       Int
+  newBacklinks           Int
+  lostBacklinks          Int
+  topPages               Json
+  fastestGrowingKeywords Json
+  losingKeywords         Json
+  source                 String   @default("mock")
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  @@unique([date])
+  @@index([date])
+  @@map("seo_metrics")
+}
+
+model TwitterMetric {
+  id              String   @id @default(uuid())
+  date            DateTime @db.Date
+  followers       Int
+  newFollowers    Int
+  mentions        Int
+  profileVisits   Int
+  engagementRate  Float
+  linkClicks      Int
+  topTweets       Json
+  source          String   @default("mock")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([date])
+  @@index([date])
+  @@map("twitter_metrics")
+}
+
+model DiscordMetric {
+  id                String   @id @default(uuid())
+  date              DateTime @db.Date
+  memberCount       Int
+  dau               Int
+  wau               Int
+  messages          Int
+  topChannels       Json
+  mostActiveMembers Json
+  source            String   @default("mock")
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@unique([date])
+  @@index([date])
+  @@map("discord_metrics")
+}
+
+enum RedditSentiment {
+  Positive
+  Neutral
+  Negative
+}
+
+enum RedditMentionType {
+  Question
+  Complaint
+  Comparison
+  Praise
+  BugReport
+  FeatureRequest
+}
+
+enum RedditPriority {
+  Low
+  Medium
+  High
+  Critical
+}
+
+enum RedditStatus {
+  New
+  InProgress
+  Responded
+  Resolved
+  Ignored
+}
+
+model RedditMention {
+  id             String            @id @default(uuid())
+  subreddit      String
+  postTitle      String
+  author         String
+  url            String
+  score          Int
+  comments       Int
+  sentiment      RedditSentiment
+  mentionType    RedditMentionType
+  priority       RedditPriority
+  status         RedditStatus      @default(New)
+  ownerId        String?
+  owner          User?             @relation(fields: [ownerId], references: [id])
+  fullPost       String
+  topComments    Json
+  aiSummary      String
+  suggestedReply String
+  statusTimeline Json
+  matchedKeyword String
+  mentionedAt    DateTime
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  @@unique([url])
+  @@index([subreddit, mentionedAt])
+  @@index([status])
+  @@index([priority])
+  @@map("reddit_mentions")
+}
+
+model BlogMetric {
+  id                 String   @id @default(uuid())
+  date               DateTime @db.Date
+  blogsPublished      Int
+  blogVisitors       Int
+  avgReadingTimeSec  Int
+  contentConversions Int
+  topCategories      Json
+  source             String   @default("mock")
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@unique([date])
+  @@index([date])
+  @@map("blog_metrics")
+}
+
+model BlogPost {
+  id            String   @id @default(uuid())
+  title         String
+  slug          String
+  category      String
+  visitors      Int
+  timeOnPageSec Int
+  ctr           Float
+  conversions   Int
+  capturedAt    DateTime
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([slug, capturedAt])
+  @@index([capturedAt])
+  @@map("blog_posts")
+}
+
+model KeywordRanking {
+  id               String   @id @default(uuid())
+  keyword          String
+  currentPosition  Int
+  previousPosition Int
+  movement         Int
+  searchVolume     Int
+  difficulty       Int
+  clicks           Int
+  ctr              Float
+  landingPage      String
+  checkedAt        DateTime
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@unique([keyword, checkedAt])
+  @@index([currentPosition])
+  @@map("keyword_rankings")
+}
+
+model CompetitorMetric {
+  id               String   @id @default(uuid())
+  competitorDomain String
+  date             DateTime @db.Date
+  organicTraffic   Int
+  organicKeywords  Int
+  domainRating     Float
+  backlinks        Int
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@unique([competitorDomain, date])
+  @@map("competitor_metrics")
+}

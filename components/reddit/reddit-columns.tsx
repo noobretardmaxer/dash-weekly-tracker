@@ -1,6 +1,13 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpRight, MessageSquare, MoreHorizontal } from "lucide-react";
-import type { RedditMentionRow, RedditPriority, RedditSentiment, RedditStatus } from "@/lib/mock-data/reddit";
+import {
+  MENTION_TYPE_LABELS,
+  STATUS_LABELS,
+  type RedditMentionRow,
+  type RedditPriority,
+  type RedditSentiment,
+  type RedditStatus,
+} from "@/lib/api/reddit";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -11,7 +18,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import { TEAM_MEMBERS } from "@/lib/constants/team-members";
 
 const SENTIMENT_CLASSES: Record<RedditSentiment, string> = {
   Positive: "bg-success/10 text-success",
@@ -28,20 +34,11 @@ const PRIORITY_CLASSES: Record<RedditPriority, string> = {
 
 const STATUS_CLASSES: Record<RedditStatus, string> = {
   New: "bg-foreground/10 text-foreground",
-  "In Progress": "bg-muted text-muted-foreground",
+  InProgress: "bg-muted text-muted-foreground",
   Responded: "bg-muted text-muted-foreground",
   Resolved: "bg-success/10 text-success",
   Ignored: "bg-muted/60 text-muted-foreground/60",
 };
-
-function initialsFor(name: string) {
-  return name
-    .split(" ")
-    .map((part) => part[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
-}
 
 export function buildRedditColumns(onAction: (row: RedditMentionRow, action: "view" | "resolve" | "assign") => void): ColumnDef<RedditMentionRow, unknown>[] {
   return [
@@ -71,7 +68,11 @@ export function buildRedditColumns(onAction: (row: RedditMentionRow, action: "vi
         return <Badge className={cn("border-transparent", SENTIMENT_CLASSES[sentiment])}>{sentiment}</Badge>;
       },
     },
-    { accessorKey: "mentionType", header: "Mention Type" },
+    {
+      accessorKey: "mentionType",
+      header: "Mention Type",
+      cell: ({ getValue }) => MENTION_TYPE_LABELS[getValue<keyof typeof MENTION_TYPE_LABELS>()],
+    },
     {
       accessorKey: "priority",
       header: "Priority",
@@ -81,16 +82,17 @@ export function buildRedditColumns(onAction: (row: RedditMentionRow, action: "vi
       },
     },
     {
-      accessorKey: "owner",
+      id: "owner",
+      accessorFn: (row) => row.owner?.name ?? "Unassigned",
       header: "Owner",
-      cell: ({ getValue }) => {
-        const owner = getValue<string>();
+      cell: ({ row }) => {
+        const owner = row.original.owner;
         return (
           <span className="inline-flex items-center gap-2">
             <Avatar className="size-5">
-              <AvatarFallback className="text-[10px]">{initialsFor(owner)}</AvatarFallback>
+              <AvatarFallback className="text-[10px]">{owner?.initials ?? "?"}</AvatarFallback>
             </Avatar>
-            <span className="whitespace-nowrap">{owner}</span>
+            <span className="whitespace-nowrap">{owner?.name ?? "Unassigned"}</span>
           </span>
         );
       },
@@ -100,7 +102,7 @@ export function buildRedditColumns(onAction: (row: RedditMentionRow, action: "vi
       header: "Status",
       cell: ({ getValue }) => {
         const status = getValue<RedditStatus>();
-        return <Badge className={cn("border-transparent", STATUS_CLASSES[status])}>{status}</Badge>;
+        return <Badge className={cn("border-transparent", STATUS_CLASSES[status])}>{STATUS_LABELS[status]}</Badge>;
       },
     },
     {
@@ -127,5 +129,3 @@ export function buildRedditColumns(onAction: (row: RedditMentionRow, action: "vi
     },
   ];
 }
-
-export const REDDIT_OWNERS = TEAM_MEMBERS.map((m) => m.name);

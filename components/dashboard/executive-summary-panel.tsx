@@ -3,7 +3,9 @@
 import { motion } from "framer-motion";
 import { AlertTriangle, CheckCircle2, Lightbulb, Sparkles } from "lucide-react";
 import { useDateRange } from "@/lib/hooks/use-date-range";
-import { wins, risks, recommendations, growthScore, healthScore, aiSummary } from "@/lib/mock-data/executive-summary";
+import { useLatestReport } from "@/lib/hooks/queries/use-latest-report";
+import { ErrorState } from "@/components/primitives/error-state";
+import { ChartCardSkeleton } from "@/components/primitives/skeletons/chart-card-skeleton";
 import { cn } from "@/lib/utils";
 
 function ScoreBadge({ label, score }: { label: string; score: number }) {
@@ -46,6 +48,39 @@ function SummaryList({
 
 export function ExecutiveSummaryPanel() {
   const { label } = useDateRange();
+  const { data, isLoading, isError, refetch } = useLatestReport();
+
+  if (isLoading) {
+    return (
+      <div className="rounded-xl border border-border bg-card p-5 sm:p-6">
+        <ChartCardSkeleton height={220} />
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="rounded-xl border border-border bg-card p-5 sm:p-6">
+        <ErrorState onRetry={() => refetch()} />
+      </div>
+    );
+  }
+
+  if (!data) {
+    return (
+      <div className="rounded-xl border border-border bg-card p-5 sm:p-6">
+        <div className="flex flex-col items-center justify-center gap-2 py-10 text-center">
+          <Sparkles className="size-5 text-muted-foreground" />
+          <p className="text-sm font-medium">No executive report yet</p>
+          <p className="max-w-xs text-xs text-muted-foreground">
+            No executive report has been generated yet. Check back after the next scheduled run.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  const { payload } = data;
 
   return (
     <motion.div
@@ -60,22 +95,22 @@ export function ExecutiveSummaryPanel() {
           <h2 className="text-lg font-semibold tracking-tight">Executive Summary</h2>
         </div>
         <div className="flex items-center gap-3">
-          <ScoreBadge label="Growth Score" score={growthScore} />
-          <ScoreBadge label="Health Score" score={healthScore} />
+          <ScoreBadge label="Growth Score" score={payload.growthScore} />
+          <ScoreBadge label="Health Score" score={payload.healthScore} />
         </div>
       </div>
 
       <div className="mt-5 grid grid-cols-1 gap-6 md:grid-cols-3">
-        <SummaryList title="Wins" icon={CheckCircle2} iconClassName="text-success" items={wins} />
-        <SummaryList title="Risks" icon={AlertTriangle} iconClassName="text-danger" items={risks} />
-        <SummaryList title="Recommendations" icon={Lightbulb} iconClassName="text-muted-foreground" items={recommendations} />
+        <SummaryList title="Wins" icon={CheckCircle2} iconClassName="text-success" items={payload.wins} />
+        <SummaryList title="Risks" icon={AlertTriangle} iconClassName="text-danger" items={payload.risks} />
+        <SummaryList title="Recommendations" icon={Lightbulb} iconClassName="text-muted-foreground" items={payload.recommendations} />
       </div>
 
       <div className="mt-5 flex items-start gap-2 rounded-lg border border-dashed border-border bg-secondary/30 p-3">
         <Sparkles className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
         <div>
           <p className="text-xs font-medium text-muted-foreground">AI Summary</p>
-          <p className="text-sm text-muted-foreground">{aiSummary}</p>
+          <p className="text-sm text-muted-foreground">{payload.executiveSummary}</p>
         </div>
       </div>
     </motion.div>

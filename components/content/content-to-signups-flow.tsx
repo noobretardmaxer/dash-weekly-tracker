@@ -2,9 +2,10 @@
 
 import { ArrowDown, ArrowRight } from "lucide-react";
 import { useDateRange } from "@/lib/hooks/use-date-range";
-import { sliceLastNDays, sumSeries } from "@/lib/mock-data/utils";
-import { blogsPublishedSeries, blogVisitorsSeries, contentConversionsSeries } from "@/lib/mock-data/content";
+import { useBlogOverview } from "@/lib/hooks/queries/use-blog-overview";
 import { formatCompactNumber, formatNumber, formatPercent } from "@/lib/utils/format";
+
+const sum = (arr: { value: number }[]) => arr.reduce((a, p) => a + p.value, 0);
 
 function FlowStage({ label, value }: { label: string; value: string }) {
   return (
@@ -27,9 +28,15 @@ function FlowConnector({ rate }: { rate: string }) {
 
 export function ContentToSignupsFlow() {
   const { days } = useDateRange();
-  const contentPieces = sumSeries(sliceLastNDays(blogsPublishedSeries, days));
-  const traffic = sumSeries(sliceLastNDays(blogVisitorsSeries, days));
-  const signups = sumSeries(sliceLastNDays(contentConversionsSeries, days));
+  const { data, isLoading, isError } = useBlogOverview({ days });
+
+  if (isLoading || isError || !data) {
+    return null;
+  }
+
+  const contentPieces = sum(data.charts.blogsPublished.current);
+  const traffic = sum(data.charts.blogVisitors.current);
+  const signups = sum(data.charts.contentConversions.current);
 
   const trafficPerPiece = contentPieces > 0 ? traffic / contentPieces : 0;
   const conversionRate = traffic > 0 ? (signups / traffic) * 100 : 0;
