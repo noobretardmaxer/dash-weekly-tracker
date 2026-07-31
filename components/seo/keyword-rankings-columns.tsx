@@ -1,6 +1,6 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { ArrowDownRight, ArrowUpRight, Minus } from "lucide-react";
-import type { KeywordRankingRow } from "@/lib/mock-data/keywords";
+import type { KeywordRankingRow } from "@/lib/api/seo";
 import { cn } from "@/lib/utils";
 import { formatCompactNumber, formatPercent } from "@/lib/utils/format";
 

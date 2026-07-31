@@ -1,0 +1,685 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "HydraDB Growth Dashboard API",
+    "version": "0.1.0",
+    "description": "Internal analytics platform API. See README.md for how to run in MOCK_MODE (default) or connect real integrations."
+  },
+  "servers": [
+    {
+      "url": "/api/v1"
+    }
+  ],
+  "components": {
+    "schemas": {},
+    "parameters": {}
+  },
+  "paths": {
+    "/api/v1/dashboard": {
+      "get": {
+        "description": "Composite overview / list endpoint for the dashboard domain. Supports date-range (`days` or `from`/`to`), comparison (`compare`), and — where the endpoint is a list — pagination, sorting, and filtering query params.",
+        "summary": "Get dashboard data",
+        "tags": [
+          "dashboard"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "required": false,
+            "name": "from",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "required": false,
+            "name": "to",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "number",
+              "minimum": 1,
+              "maximum": 365,
+              "default": 30
+            },
+            "required": false,
+            "name": "days",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "none",
+                "previous_period",
+                "previous_year"
+              ],
+              "default": "previous_period"
+            },
+            "required": false,
+            "name": "compare",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/v1/website": {
+      "get": {
+        "description": "Composite overview / list endpoint for the website domain. Supports date-range (`days` or `from`/`to`), comparison (`compare`), and — where the endpoint is a list — pagination, sorting, and filtering query params.",
+        "summary": "Get website data",
+        "tags": [
+          "website"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "required": false,
+            "name": "from",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "required": false,
+            "name": "to",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "number",
+              "minimum": 1,
+              "maximum": 365,
+              "default": 30
+            },
+            "required": false,
+            "name": "days",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "none",
+                "previous_period",
+                "previous_year"
+              ],
+              "default": "previous_period"
+            },
+            "required": false,
+            "name": "compare",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/v1/search-console": {
+      "get": {
+        "description": "Composite overview / list endpoint for the search-console domain. Supports date-range (`days` or `from`/`to`), comparison (`compare`), and — where the endpoint is a list — pagination, sorting, and filtering query params.",
+        "summary": "Get search-console data",
+        "tags": [
+          "search-console"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "required": false,
+            "name": "from",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "required": false,
+            "name": "to",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "number",
+              "minimum": 1,
+              "maximum": 365,
+              "default": 30
+            },
+            "required": false,
+            "name": "days",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "none",
+                "previous_period",
+                "previous_year"
+              ],
+              "default": "previous_period"
+            },
+            "required": false,
+            "name": "compare",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/v1/seo": {
+      "get": {
+        "description": "Composite overview / list endpoint for the seo domain. Supports date-range (`days` or `from`/`to`), comparison (`compare`), and — where the endpoint is a list — pagination, sorting, and filtering query params.",
+        "summary": "Get seo data",
+        "tags": [
+          "seo"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "required": false,
+            "name": "from",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "required": false,
+            "name": "to",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "number",
+              "minimum": 1,
+              "maximum": 365,
+              "default": 30
+            },
+            "required": false,
+            "name": "days",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "none",
+                "previous_period",
+                "previous_year"
+              ],
+              "default": "previous_period"
+            },
+            "required": false,
+            "name": "compare",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/v1/twitter": {
+      "get": {
+        "description": "Composite overview / list endpoint for the twitter domain. Supports date-range (`days` or `from`/`to`), comparison (`compare`), and — where the endpoint is a list — pagination, sorting, and filtering query params.",
+        "summary": "Get twitter data",
+        "tags": [
+          "twitter"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "required": false,
+            "name": "from",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "required": false,
+            "name": "to",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "number",
+              "minimum": 1,
+              "maximum": 365,
+              "default": 30
+            },
+            "required": false,
+            "name": "days",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "none",
+                "previous_period",
+                "previous_year"
+              ],
+              "default": "previous_period"
+            },
+            "required": false,
+            "name": "compare",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/v1/reddit": {
+      "get": {
+        "description": "Composite overview / list endpoint for the reddit domain. Supports date-range (`days` or `from`/`to`), comparison (`compare`), and — where the endpoint is a list — pagination, sorting, and filtering query params.",
+        "summary": "Get reddit data",
+        "tags": [
+          "reddit"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "required": false,
+            "name": "from",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "required": false,
+            "name": "to",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "number",
+              "minimum": 1,
+              "maximum": 365,
+              "default": 30
+            },
+            "required": false,
+            "name": "days",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "none",
+                "previous_period",
+                "previous_year"
+              ],
+              "default": "previous_period"
+            },
+            "required": false,
+            "name": "compare",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/v1/discord": {
+      "get": {
+        "description": "Composite overview / list endpoint for the discord domain. Supports date-range (`days` or `from`/`to`), comparison (`compare`), and — where the endpoint is a list — pagination, sorting, and filtering query params.",
+        "summary": "Get discord data",
+        "tags": [
+          "discord"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "required": false,
+            "name": "from",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "required": false,
+            "name": "to",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "number",
+              "minimum": 1,
+              "maximum": 365,
+              "default": 30
+            },
+            "required": false,
+            "name": "days",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "none",
+                "previous_period",
+                "previous_year"
+              ],
+              "default": "previous_period"
+            },
+            "required": false,
+            "name": "compare",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/v1/blog": {
+      "get": {
+        "description": "Composite overview / list endpoint for the blog domain. Supports date-range (`days` or `from`/`to`), comparison (`compare`), and — where the endpoint is a list — pagination, sorting, and filtering query params.",
+        "summary": "Get blog data",
+        "tags": [
+          "blog"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "required": false,
+            "name": "from",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "required": false,
+            "name": "to",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "number",
+              "minimum": 1,
+              "maximum": 365,
+              "default": 30
+            },
+            "required": false,
+            "name": "days",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "none",
+                "previous_period",
+                "previous_year"
+              ],
+              "default": "previous_period"
+            },
+            "required": false,
+            "name": "compare",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/v1/reports": {
+      "get": {
+        "description": "Composite overview / list endpoint for the reports domain. Supports date-range (`days` or `from`/`to`), comparison (`compare`), and — where the endpoint is a list — pagination, sorting, and filtering query params.",
+        "summary": "Get reports data",
+        "tags": [
+          "reports"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "required": false,
+            "name": "from",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "required": false,
+            "name": "to",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "number",
+              "minimum": 1,
+              "maximum": 365,
+              "default": 30
+            },
+            "required": false,
+            "name": "days",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "none",
+                "previous_period",
+                "previous_year"
+              ],
+              "default": "previous_period"
+            },
+            "required": false,
+            "name": "compare",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/v1/settings": {
+      "get": {
+        "description": "Composite overview / list endpoint for the settings domain. Supports date-range (`days` or `from`/`to`), comparison (`compare`), and — where the endpoint is a list — pagination, sorting, and filtering query params.",
+        "summary": "Get settings data",
+        "tags": [
+          "settings"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "required": false,
+            "name": "from",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "required": false,
+            "name": "to",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "number",
+              "minimum": 1,
+              "maximum": 365,
+              "default": 30
+            },
+            "required": false,
+            "name": "days",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "none",
+                "previous_period",
+                "previous_year"
+              ],
+              "default": "previous_period"
+            },
+            "required": false,
+            "name": "compare",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/v1/alerts": {
+      "get": {
+        "description": "Composite overview / list endpoint for the alerts domain. Supports date-range (`days` or `from`/`to`), comparison (`compare`), and — where the endpoint is a list — pagination, sorting, and filtering query params.",
+        "summary": "Get alerts data",
+        "tags": [
+          "alerts"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "required": false,
+            "name": "from",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "required": false,
+            "name": "to",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "number",
+              "minimum": 1,
+              "maximum": 365,
+              "default": 30
+            },
+            "required": false,
+            "name": "days",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "none",
+                "previous_period",
+                "previous_year"
+              ],
+              "default": "previous_period"
+            },
+            "required": false,
+            "name": "compare",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/v1/health": {
+      "get": {
+        "description": "Health check: database, redis, scheduler, and per-integration circuit-breaker state.",
+        "summary": "Health check",
+        "tags": [
+          "health"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "503": {
+            "description": "Degraded"
+          }
+        }
+      }
+    }
+  }
+}

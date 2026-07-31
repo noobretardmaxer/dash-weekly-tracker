@@ -3,30 +3,96 @@
 import { SectionHeader } from "@/components/primitives/section-header";
 import { ChartCard } from "@/components/primitives/chart-card";
 import { KpiCard } from "@/components/primitives/kpi-card";
+import { ErrorState } from "@/components/primitives/error-state";
+import { KpiCardSkeleton } from "@/components/primitives/skeletons/kpi-card-skeleton";
+import { ChartCardSkeleton } from "@/components/primitives/skeletons/chart-card-skeleton";
+import { Skeleton } from "@/components/ui/skeleton";
 import { AppLineChart } from "@/components/charts/line-chart";
 import { useDateRange } from "@/lib/hooks/use-date-range";
-import { sliceLastNDays, getPreviousPeriod, buildKpiMetric } from "@/lib/mock-data/utils";
-import {
-  followersSeries,
-  newFollowersSeries,
-  mentionsSeries,
-  profileVisitsSeries,
-  engagementRateSeries,
-  linkClicksSeries,
-  topTweets,
-} from "@/lib/mock-data/twitter";
+import { useTwitterOverview } from "@/lib/hooks/queries/use-twitter-overview";
+import type { KpiFormat, KpiMetric, TimeSeriesPoint } from "@/lib/mock-data/types";
 import { formatCompactNumber, formatPercent } from "@/lib/utils/format";
+
+type SeriesWithCompare = { current: TimeSeriesPoint[]; previous: TimeSeriesPoint[] };
+
+function sumSeriesKpi(
+  id: string,
+  label: string,
+  format: KpiFormat,
+  chart: SeriesWithCompare,
+  positiveIsGood = true
+): KpiMetric {
+  const sum = (arr: TimeSeriesPoint[]) => arr.reduce((a, p) => a + p.value, 0);
+  const value = sum(chart.current);
+  const prevValue = sum(chart.previous);
+  const deltaPct = prevValue === 0 ? 0 : Number((((value - prevValue) / prevValue) * 100).toFixed(1));
+
+  return {
+    id,
+    label,
+    value,
+    format,
+    deltaPct,
+    positiveIsGood,
+    series: chart.current,
+  };
+}
 
 export function TwitterPageContent() {
   const { days } = useDateRange();
+  const { data, isLoading, isError, refetch } = useTwitterOverview({ days });
 
-  const cards = [
-    buildKpiMetric({ id: "followers", label: "Followers", format: "compact", fullSeries: followersSeries, rangeDays: days, aggregate: "last" }),
-    buildKpiMetric({ id: "follower-growth", label: "Follower Growth", format: "number", fullSeries: newFollowersSeries, rangeDays: days, aggregate: "sum" }),
-    buildKpiMetric({ id: "mentions", label: "Mentions", format: "number", fullSeries: mentionsSeries, rangeDays: days, aggregate: "sum" }),
-    buildKpiMetric({ id: "profile-visits", label: "Profile Visits", format: "compact", fullSeries: profileVisitsSeries, rangeDays: days, aggregate: "sum" }),
-    buildKpiMetric({ id: "engagement", label: "Engagement Rate", format: "percent", fullSeries: engagementRateSeries, rangeDays: days, aggregate: "average" }),
-    buildKpiMetric({ id: "link-clicks", label: "Link Clicks", format: "compact", fullSeries: linkClicksSeries, rangeDays: days, aggregate: "sum" }),
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <SectionHeader title="Twitter / X" description="Audience growth, engagement, and reach on Twitter/X." />
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <KpiCardSkeleton key={i} />
+          ))}
+        </div>
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <ChartCardSkeleton />
+          <ChartCardSkeleton />
+          <ChartCardSkeleton />
+        </div>
+        <div>
+          <h3 className="mb-3 text-sm font-medium">Top Tweets</h3>
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="rounded-xl border border-border bg-card p-4">
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="mt-2 h-4 w-2/3" />
+                <div className="mt-3 flex gap-4">
+                  <Skeleton className="h-3.5 w-16" />
+                  <Skeleton className="h-3.5 w-16" />
+                  <Skeleton className="h-3.5 w-16" />
+                  <Skeleton className="h-3.5 w-16" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (isError || !data) {
+    return (
+      <div className="space-y-6">
+        <SectionHeader title="Twitter / X" description="Audience growth, engagement, and reach on Twitter/X." />
+        <ErrorState onRetry={() => refetch()} />
+      </div>
+    );
+  }
+
+  const cards: KpiMetric[] = [
+    data.kpis.followers,
+    sumSeriesKpi("follower-growth", "Follower Growth", "number", data.charts.newFollowers),
+    sumSeriesKpi("mentions", "Mentions", "number", data.charts.mentions),
+    sumSeriesKpi("profile-visits", "Profile Visits", "compact", data.charts.profileVisits),
+    data.kpis.engagementRate,
+    sumSeriesKpi("link-clicks", "Link Clicks", "compact", data.charts.linkClicks),
   ];
 
   return (
@@ -43,8 +109,8 @@ export function TwitterPageContent() {
         <ChartCard title="Follower Growth">
           {({ compare, height }) => (
             <AppLineChart
-              data={sliceLastNDays(followersSeries, days)}
-              previousData={getPreviousPeriod(followersSeries, days)}
+              data={data.charts.followers.current}
+              previousData={data.charts.followers.previous}
               compare={compare}
               height={height}
               seriesLabel="Followers"
@@ -52,12 +118,10 @@ export function TwitterPageContent() {
             />
           )}
         </ChartCard>
-        <ChartCard title="Engagement Rate">
-          {({ compare, height }) => (
+        <ChartCard title="Engagement Rate" showCompareControl={false}>
+          {({ height }) => (
             <AppLineChart
-              data={sliceLastNDays(engagementRateSeries, days)}
-              previousData={getPreviousPeriod(engagementRateSeries, days)}
-              compare={compare}
+              data={data.kpis.engagementRate.series}
               height={height}
               seriesLabel="Engagement Rate"
               valueFormatter={(v) => formatPercent(v)}
@@ -67,8 +131,8 @@ export function TwitterPageContent() {
         <ChartCard title="Mention Trend" className="lg:col-span-2">
           {({ compare, height }) => (
             <AppLineChart
-              data={sliceLastNDays(mentionsSeries, days)}
-              previousData={getPreviousPeriod(mentionsSeries, days)}
+              data={data.charts.mentions.current}
+              previousData={data.charts.mentions.previous}
               compare={compare}
               height={height}
               seriesLabel="Mentions"
@@ -81,7 +145,7 @@ export function TwitterPageContent() {
       <div>
         <h3 className="mb-3 text-sm font-medium">Top Tweets</h3>
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-          {topTweets.map((tweet) => (
+          {data.tables.topTweets.map((tweet) => (
             <div key={tweet.text} className="rounded-xl border border-border bg-card p-4">
               <p className="text-sm">{tweet.text}</p>
               <div className="mt-3 flex flex-wrap gap-4 text-xs text-muted-foreground">

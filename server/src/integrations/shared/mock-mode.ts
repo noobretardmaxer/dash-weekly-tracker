@@ -1,0 +1,45 @@
+import { env } from "../../lib/env";
+import { logger } from "../../lib/logger";
+
+export type IntegrationKey = "posthog" | "gsc" | "ahrefs" | "twitter" | "discord" | "reddit";
+
+const PER_INTEGRATION_OVERRIDE: Record<IntegrationKey, boolean | undefined> = {
+  posthog: env.POSTHOG_MOCK_MODE,
+  gsc: env.GSC_MOCK_MODE,
+  ahrefs: env.AHREFS_MOCK_MODE,
+  twitter: env.TWITTER_MOCK_MODE,
+  discord: env.DISCORD_MOCK_MODE,
+  reddit: env.REDDIT_MOCK_MODE,
+};
+
+const HAS_CREDENTIALS: Record<IntegrationKey, () => boolean> = {
+  posthog: () => Boolean(env.POSTHOG_API_KEY && env.POSTHOG_PROJECT_ID),
+  gsc: () => Boolean(env.GOOGLE_SERVICE_ACCOUNT_EMAIL && env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY && env.GSC_SITE_URL),
+  ahrefs: () => Boolean(env.AHREFS_API_TOKEN),
+  twitter: () => Boolean(env.TWITTER_BEARER_TOKEN),
+  discord: () => Boolean(env.DISCORD_BOT_TOKEN && env.DISCORD_GUILD_ID),
+  reddit: () => Boolean(env.REDDIT_CLIENT_ID && env.REDDIT_CLIENT_SECRET && env.REDDIT_USERNAME && env.REDDIT_PASSWORD),
+};
+
+/**
+ * Resolution order: explicit per-integration env override > missing
+ * credentials (always falls back to mock, even if MOCK_MODE=false, so a
+ * misconfigured deploy degrades gracefully instead of crashing) > global
+ * MOCK_MODE.
+ */
+export function isMockMode(integration: IntegrationKey): boolean {
+  const override = PER_INTEGRATION_OVERRIDE[integration];
+  if (override !== undefined) return override;
+
+  if (!HAS_CREDENTIALS[integration]()) {
+    if (!env.MOCK_MODE) {
+      logger.warn(
+        { integration },
+        "MOCK_MODE=false but required credentials are missing; falling back to mock mode for this integration"
+      );
+    }
+    return true;
+  }
+
+  return env.MOCK_MODE;
+}

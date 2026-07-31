@@ -4,9 +4,12 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { Download } from "lucide-react";
 import { SectionHeader } from "@/components/primitives/section-header";
 import { DataTable } from "@/components/primitives/data-table";
+import { ErrorState } from "@/components/primitives/error-state";
+import { TableSkeleton } from "@/components/primitives/skeletons/table-skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { reports, type ReportRow, type ReportStatus } from "@/lib/mock-data/reports";
+import { type ReportRow, type ReportStatus } from "@/lib/api/reports";
+import { useReports } from "@/lib/hooks/queries/use-reports";
 import { downloadCsv } from "@/lib/utils/csv-export";
 import { formatDateFull } from "@/lib/utils/format";
 import { cn } from "@/lib/utils";
@@ -52,10 +55,30 @@ const columns: ColumnDef<ReportRow, unknown>[] = [
 ];
 
 export function ReportsPageContent() {
+  const { data, isLoading, isError, refetch } = useReports({ pageSize: 200 });
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <SectionHeader title="Reports" description="Generated reports ready for download or sharing." />
+        <TableSkeleton />
+      </div>
+    );
+  }
+
+  if (isError || !data) {
+    return (
+      <div className="space-y-6">
+        <SectionHeader title="Reports" description="Generated reports ready for download or sharing." />
+        <ErrorState onRetry={() => refetch()} />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <SectionHeader title="Reports" description="Generated reports ready for download or sharing." />
-      <DataTable columns={columns} data={reports} searchPlaceholder="Search reports…" exportFilename="reports" />
+      <DataTable columns={columns} data={data.data} searchPlaceholder="Search reports…" exportFilename="reports" />
     </div>
   );
 }

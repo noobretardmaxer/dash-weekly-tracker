@@ -5,32 +5,19 @@ import { SectionHeader } from "@/components/primitives/section-header";
 import { ChartCard } from "@/components/primitives/chart-card";
 import { KpiCard } from "@/components/primitives/kpi-card";
 import { DataTable } from "@/components/primitives/data-table";
+import { ErrorState } from "@/components/primitives/error-state";
+import { KpiCardSkeleton } from "@/components/primitives/skeletons/kpi-card-skeleton";
+import { ChartCardSkeleton } from "@/components/primitives/skeletons/chart-card-skeleton";
+import { TableSkeleton } from "@/components/primitives/skeletons/table-skeleton";
 import { AppLineChart } from "@/components/charts/line-chart";
 import { AppAreaChart } from "@/components/charts/area-chart";
 import { AppBarChart } from "@/components/charts/bar-chart";
 import { AppDonutChart } from "@/components/charts/donut-chart";
 import { AppFunnelChart } from "@/components/charts/funnel-chart";
 import { useDateRange } from "@/lib/hooks/use-date-range";
-import { sliceLastNDays, getPreviousPeriod, buildKpiMetric } from "@/lib/mock-data/utils";
-import {
-  visitorsSeries,
-  uniqueVisitorsSeries,
-  returningVisitorsSeries,
-  signupsSeries,
-  activationFunnel,
-  conversionFunnel,
-  trafficSources,
-  deviceBreakdown,
-  countryBreakdown,
-  avgSessionDurationSeries,
-  bounceRateSeries,
-  topLandingPages,
-  topExitPages,
-} from "@/lib/mock-data/website";
+import { useWebsiteOverview } from "@/lib/hooks/queries/use-website-overview";
+import type { LandingPageRow, ExitPageRow } from "@/lib/api/website";
 import { formatCompactNumber, formatDuration, formatPercent } from "@/lib/utils/format";
-
-type LandingPageRow = (typeof topLandingPages)[number];
-type ExitPageRow = (typeof topExitPages)[number];
 
 const landingColumns: ColumnDef<LandingPageRow, unknown>[] = [
   { accessorKey: "page", header: "Page" },
@@ -47,41 +34,53 @@ const exitColumns: ColumnDef<ExitPageRow, unknown>[] = [
 
 export function WebsitePageContent() {
   const { days } = useDateRange();
+  const { data, isLoading, isError, refetch } = useWebsiteOverview({ days });
 
-  const avgSessionDuration = buildKpiMetric({
-    id: "avg-session-duration",
-    label: "Average Session Duration",
-    format: "duration",
-    fullSeries: avgSessionDurationSeries,
-    rangeDays: days,
-    aggregate: "average",
-  });
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <SectionHeader title="Website Analytics" description="Traffic, engagement, and conversion across the marketing site." />
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <KpiCardSkeleton />
+          <KpiCardSkeleton />
+        </div>
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <ChartCardSkeleton key={i} />
+          ))}
+        </div>
+        <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+          <TableSkeleton />
+          <TableSkeleton />
+        </div>
+      </div>
+    );
+  }
 
-  const bounceRate = buildKpiMetric({
-    id: "bounce-rate",
-    label: "Bounce Rate",
-    format: "percent",
-    fullSeries: bounceRateSeries,
-    rangeDays: days,
-    aggregate: "average",
-    positiveIsGood: false,
-  });
+  if (isError || !data) {
+    return (
+      <div className="space-y-6">
+        <SectionHeader title="Website Analytics" description="Traffic, engagement, and conversion across the marketing site." />
+        <ErrorState onRetry={() => refetch()} />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
       <SectionHeader title="Website Analytics" description="Traffic, engagement, and conversion across the marketing site." />
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <KpiCard metric={avgSessionDuration} />
-        <KpiCard metric={bounceRate} />
+        <KpiCard metric={data.kpis.avgSessionDuration} />
+        <KpiCard metric={data.kpis.bounceRate} />
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <ChartCard title="Visitors">
           {({ compare, height }) => (
             <AppLineChart
-              data={sliceLastNDays(visitorsSeries, days)}
-              previousData={getPreviousPeriod(visitorsSeries, days)}
+              data={data.charts.visitors.current}
+              previousData={data.charts.visitors.previous}
               compare={compare}
               height={height}
               seriesLabel="Visitors"
@@ -92,8 +91,8 @@ export function WebsitePageContent() {
         <ChartCard title="Unique Visitors">
           {({ compare, height }) => (
             <AppLineChart
-              data={sliceLastNDays(uniqueVisitorsSeries, days)}
-              previousData={getPreviousPeriod(uniqueVisitorsSeries, days)}
+              data={data.charts.uniqueVisitors.current}
+              previousData={data.charts.uniqueVisitors.previous}
               compare={compare}
               height={height}
               seriesLabel="Unique Visitors"
@@ -104,8 +103,8 @@ export function WebsitePageContent() {
         <ChartCard title="Returning Visitors">
           {({ compare, height }) => (
             <AppAreaChart
-              data={sliceLastNDays(returningVisitorsSeries, days)}
-              previousData={getPreviousPeriod(returningVisitorsSeries, days)}
+              data={data.charts.returningVisitors.current}
+              previousData={data.charts.returningVisitors.previous}
               compare={compare}
               height={height}
               seriesLabel="Returning Visitors"
@@ -116,8 +115,8 @@ export function WebsitePageContent() {
         <ChartCard title="Signups">
           {({ compare, height }) => (
             <AppLineChart
-              data={sliceLastNDays(signupsSeries, days)}
-              previousData={getPreviousPeriod(signupsSeries, days)}
+              data={data.charts.signups.current}
+              previousData={data.charts.signups.previous}
               compare={compare}
               height={height}
               seriesLabel="Signups"
@@ -126,20 +125,20 @@ export function WebsitePageContent() {
           )}
         </ChartCard>
         <ChartCard title="Activation Funnel" showCompareControl={false}>
-          {({ height }) => <AppFunnelChart data={activationFunnel} height={height} valueFormatter={(v) => formatPercent(v)} />}
+          {({ height }) => <AppFunnelChart data={data.charts.activationFunnel} height={height} valueFormatter={(v) => formatPercent(v)} />}
         </ChartCard>
         <ChartCard title="Conversion Funnel" showCompareControl={false}>
-          {({ height }) => <AppFunnelChart data={conversionFunnel} height={height} valueFormatter={(v) => formatPercent(v)} />}
+          {({ height }) => <AppFunnelChart data={data.charts.conversionFunnel} height={height} valueFormatter={(v) => formatPercent(v)} />}
         </ChartCard>
         <ChartCard title="Traffic Sources" showCompareControl={false}>
-          {({ height }) => <AppDonutChart data={trafficSources} height={height} />}
+          {({ height }) => <AppDonutChart data={data.charts.trafficSources} height={height} />}
         </ChartCard>
         <ChartCard title="Device Breakdown" showCompareControl={false}>
-          {({ height }) => <AppDonutChart data={deviceBreakdown} height={height} />}
+          {({ height }) => <AppDonutChart data={data.charts.deviceBreakdown} height={height} />}
         </ChartCard>
         <ChartCard title="Country Breakdown" showCompareControl={false} className="lg:col-span-2">
           {({ height }) => (
-            <AppBarChart data={countryBreakdown} height={height} layout="horizontal" valueFormatter={(v) => `${v}%`} />
+            <AppBarChart data={data.charts.countryBreakdown} height={height} layout="horizontal" valueFormatter={(v) => `${v}%`} />
           )}
         </ChartCard>
       </div>
@@ -147,11 +146,11 @@ export function WebsitePageContent() {
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
         <div>
           <h3 className="mb-3 text-sm font-medium">Top Landing Pages</h3>
-          <DataTable columns={landingColumns} data={topLandingPages} searchPlaceholder="Search pages…" exportFilename="top-landing-pages" />
+          <DataTable columns={landingColumns} data={data.tables.topLandingPages} searchPlaceholder="Search pages…" exportFilename="top-landing-pages" />
         </div>
         <div>
           <h3 className="mb-3 text-sm font-medium">Top Exit Pages</h3>
-          <DataTable columns={exitColumns} data={topExitPages} searchPlaceholder="Search pages…" exportFilename="top-exit-pages" />
+          <DataTable columns={exitColumns} data={data.tables.topExitPages} searchPlaceholder="Search pages…" exportFilename="top-exit-pages" />
         </div>
       </div>
     </div>
