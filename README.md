@@ -37,7 +37,7 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 
 ## Backend
 
-The dashboard is backed by a standalone Node/TypeScript API + worker service in [`server/`](server), storing history in Postgres and syncing from PostHog, Google Search Console, Ahrefs, Twitter/X, Discord, and Reddit on a schedule (BullMQ by default, Trigger.dev optionally). See [`server/README.md`](server/README.md) for the full architecture (integration module pattern, database schema, scheduler, analytics/alerts/report generation) and exactly how to connect each real integration.
+The dashboard is backed by a standalone Node/TypeScript API + worker service in [`backend/`](backend), storing history in Postgres and syncing from PostHog, Google Search Console, Ahrefs, Twitter/X, Discord, and Reddit on a schedule (BullMQ by default, Trigger.dev optionally). See [`backend/README.md`](backend/README.md) for the full architecture (integration module pattern, database schema, scheduler, analytics/alerts/report generation) and exactly how to connect each real integration.
 
 ### Quickest path: fully mocked, zero credentials
 
@@ -50,19 +50,19 @@ This brings up Postgres, Redis, the API, the worker, and the frontend, all runni
 ### Local development (without Docker)
 
 ```bash
-cd server
+cd backend
 cp .env.example .env
 npm install
-docker compose up -d postgres redis   # or point DATABASE_URL/REDIS_URL at your own instances
+docker compose -f ../docker-compose.yml up -d postgres redis   # or point DATABASE_URL/REDIS_URL at your own instances
 npx prisma migrate dev
 npx prisma db seed
 npm run dev          # API on :4000
 npm run dev:worker   # scheduler/worker, in a second terminal
 
-cd ..
+cd ../frontend
 API_URL=http://localhost:4000 npm run dev   # frontend on :3000
 ```
 
 ### Connecting a real integration
 
-Leave everything on `MOCK_MODE=true` and flip one integration at a time by setting its credentials in `server/.env` and its `<INTEGRATION>_MOCK_MODE=false` override — see `server/.env.example` for the full list of env vars per integration (PostHog, GSC, Ahrefs, Twitter/X, Discord, Reddit) and `server/README.md` for where to obtain each one.
+Leave everything on `MOCK_MODE=true` and flip one integration at a time by setting its credentials in `backend/.env` and its `<INTEGRATION>_MOCK_MODE=false` override — see `backend/.env.example` for the full list of env vars per integration (PostHog, GSC, Ahrefs, Twitter/X, Discord, Reddit) and `backend/README.md` for where to obtain each one.
