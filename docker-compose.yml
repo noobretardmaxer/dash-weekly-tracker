@@ -30,7 +30,7 @@ services:
 
   api:
     build:
-      context: ./server
+      context: ./backend
     command: sh -c "npx prisma migrate deploy && node dist/server.js"
     depends_on:
       postgres:
@@ -46,7 +46,7 @@ services:
 
   worker:
     build:
-      context: ./server
+      context: ./backend
     command: node dist/worker.js
     depends_on:
       postgres:
@@ -61,7 +61,7 @@ services:
 
   web:
     build:
-      context: .
+      context: ./frontend
       dockerfile: Dockerfile
     depends_on:
       - api
