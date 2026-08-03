@@ -9,6 +9,7 @@ import { HeaderGlobalSearch } from "@/components/layout/header-global-search";
 import { HeaderNotifications } from "@/components/layout/header-notifications";
 import { HeaderProfileMenu } from "@/components/layout/header-profile-menu";
 import { OfflineBanner } from "@/components/primitives/offline-banner";
+import { HeaderThemeToggle } from "@/components/layout/header-theme-toggle";
 
 export function Header() {
   const { label } = useDateRange();
@@ -28,6 +29,7 @@ export function Header() {
         <div className="hidden sm:block">
           <HeaderGlobalSearch />
         </div>
+        <HeaderThemeToggle />
         <HeaderLastSync />
         <HeaderNotifications />
         <HeaderProfileMenu />

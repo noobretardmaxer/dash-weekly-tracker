@@ -17,7 +17,18 @@ import { AppFunnelChart } from "@/components/charts/funnel-chart";
 import { useDateRange } from "@/lib/hooks/use-date-range";
 import { useWebsiteOverview } from "@/lib/hooks/queries/use-website-overview";
 import type { LandingPageRow, ExitPageRow } from "@/lib/api/website";
+import type { KpiMetric, TimeSeriesPoint } from "@/lib/mock-data/types";
 import { formatCompactNumber, formatDuration, formatPercent } from "@/lib/utils/format";
+
+type SeriesWithCompare = { current: TimeSeriesPoint[]; previous: TimeSeriesPoint[] };
+
+function sumSeriesKpi(id: string, label: string, chart: SeriesWithCompare, positiveIsGood = true): KpiMetric {
+  const sum = (arr: TimeSeriesPoint[]) => arr.reduce((a, p) => a + p.value, 0);
+  const value = sum(chart.current);
+  const prevValue = sum(chart.previous);
+  const deltaPct = prevValue === 0 ? 0 : Number((((value - prevValue) / prevValue) * 100).toFixed(1));
+  return { id, label, value, format: "compact", deltaPct, positiveIsGood, series: chart.current };
+}
 
 const landingColumns: ColumnDef<LandingPageRow, unknown>[] = [
   { accessorKey: "page", header: "Page" },
@@ -40,9 +51,8 @@ export function WebsitePageContent() {
     return (
       <div className="space-y-6">
         <SectionHeader title="Website Analytics" description="Traffic, engagement, and conversion across the marketing site." />
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <KpiCardSkeleton />
-          <KpiCardSkeleton />
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => <KpiCardSkeleton key={i} />)}
         </div>
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           {Array.from({ length: 8 }).map((_, i) => (
@@ -70,7 +80,9 @@ export function WebsitePageContent() {
     <div className="space-y-6">
       <SectionHeader title="Website Analytics" description="Traffic, engagement, and conversion across the marketing site." />
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <KpiCard metric={sumSeriesKpi("visitors", "Total Visitors", data.charts.visitors)} />
+        <KpiCard metric={sumSeriesKpi("signups", "Signups", data.charts.signups)} />
         <KpiCard metric={data.kpis.avgSessionDuration} />
         <KpiCard metric={data.kpis.bounceRate} />
       </div>

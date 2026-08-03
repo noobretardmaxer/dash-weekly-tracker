@@ -9,6 +9,8 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { useUiSimulation } from "@/lib/hooks/use-ui-simulation";
+import { useTheme } from "@/lib/hooks/use-theme";
+import { Moon, Sun } from "lucide-react";
 
 const NOTIFICATION_PREFS = [
   { id: "weekly-digest", label: "Weekly executive digest", description: "A summary of growth metrics every Monday." },
@@ -19,6 +21,7 @@ const NOTIFICATION_PREFS = [
 
 export function SettingsPageContent() {
   const { simulateError, setSimulateError, simulateOffline, setSimulateOffline } = useUiSimulation();
+  const { theme, setTheme } = useTheme();
   const [prefs, setPrefs] = useState<Record<string, boolean>>({
     "weekly-digest": true,
     "keyword-alerts": true,
@@ -54,6 +57,35 @@ export function SettingsPageContent() {
         <Button size="sm" className="mt-4">
           Save changes
         </Button>
+      </div>
+
+      <div className="rounded-xl border border-border bg-card p-5">
+        <h3 className="text-sm font-medium">Appearance</h3>
+        <p className="mt-1 text-xs text-muted-foreground">Choose your preferred color scheme.</p>
+        <div className="mt-4 flex gap-3">
+          <button
+            onClick={() => setTheme("light")}
+            className={`flex flex-1 items-center justify-center gap-2 rounded-lg border px-4 py-3 text-sm transition-colors ${
+              theme === "light"
+                ? "border-primary bg-primary text-primary-foreground"
+                : "border-border bg-secondary/40 hover:bg-secondary/60"
+            }`}
+          >
+            <Sun className="size-4" />
+            Light
+          </button>
+          <button
+            onClick={() => setTheme("dark")}
+            className={`flex flex-1 items-center justify-center gap-2 rounded-lg border px-4 py-3 text-sm transition-colors ${
+              theme === "dark"
+                ? "border-primary bg-primary text-primary-foreground"
+                : "border-border bg-secondary/40 hover:bg-secondary/60"
+            }`}
+          >
+            <Moon className="size-4" />
+            Dark
+          </button>
+        </div>
       </div>
 
       <div className="rounded-xl border border-border bg-card p-5">

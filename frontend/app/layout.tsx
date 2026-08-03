@@ -26,8 +26,17 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`dark ${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      suppressHydrationWarning
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
+      <head>
+        {/* Apply theme before first paint to prevent flash */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem('theme');var d=t==='dark'||(t===null&&window.matchMedia('(prefers-color-scheme: dark)').matches);if(d)document.documentElement.classList.add('dark');}catch(e){}})()`,
+          }}
+        />
+      </head>
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <TooltipProvider delayDuration={200}>{children}</TooltipProvider>
       </body>
