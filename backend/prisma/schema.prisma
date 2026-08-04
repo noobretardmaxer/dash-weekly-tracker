@@ -13,8 +13,7 @@ datasource db {
 
 enum UserRole {
   admin
-  editor
-  viewer
+  member
 }
 
 enum UserStatus {
@@ -28,7 +27,7 @@ model User {
   email     String     @unique
   name      String
   initials  String
-  role      UserRole   @default(viewer)
+  role      UserRole   @default(member)
   status    UserStatus @default(active)
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt

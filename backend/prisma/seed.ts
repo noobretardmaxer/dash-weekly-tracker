@@ -27,11 +27,11 @@ function slugify(title: string): string {
 
 const TEAM_MEMBERS = [
   { name: "Sayandeep Das", initials: "SD", role: "admin" as const },
-  { name: "Priya Raman", initials: "PR", role: "editor" as const },
-  { name: "Jordan Kim", initials: "JK", role: "viewer" as const },
-  { name: "Alex Chen", initials: "AC", role: "viewer" as const },
-  { name: "Morgan Lee", initials: "ML", role: "viewer" as const },
-  { name: "Fatima Qureshi", initials: "FQ", role: "viewer" as const },
+  { name: "Priya Raman", initials: "PR", role: "member" as const },
+  { name: "Jordan Kim", initials: "JK", role: "member" as const },
+  { name: "Alex Chen", initials: "AC", role: "member" as const },
+  { name: "Morgan Lee", initials: "ML", role: "member" as const },
+  { name: "Fatima Qureshi", initials: "FQ", role: "member" as const },
 ];
 
 function emailFor(name: string): string {
@@ -68,7 +68,12 @@ async function seedSettings(): Promise<void> {
     create: { key: "alerts.thresholds", value: DEFAULT_ALERT_THRESHOLDS },
     update: {},
   });
-  console.log("Seeded settings (reddit.keywords, alerts.thresholds)");
+  await prisma.setting.upsert({
+    where: { key: "workspace.name" },
+    create: { key: "workspace.name", value: "HydraDB Growth" },
+    update: {},
+  });
+  console.log("Seeded settings (reddit.keywords, alerts.thresholds, workspace.name)");
 }
 
 async function seedIntegration(name: string, createModule: () => { authenticate(): Promise<void>; fetch(range: { from: Date; to: Date }): Promise<unknown>; normalize(raw: unknown): Promise<unknown[]>; store(records: unknown[]): Promise<{ count: number }> }): Promise<void> {
@@ -194,7 +199,7 @@ async function main(): Promise<void> {
 
   console.log("\nLogin with any seeded user's email and this dev password:");
   console.log(`  password: ${DEV_PASSWORD}`);
-  console.log(`  e.g. ${emailFor(TEAM_MEMBERS[0].name)} (admin), ${emailFor(TEAM_MEMBERS[1].name)} (editor), ${emailFor(TEAM_MEMBERS[2].name)} (viewer)`);
+  console.log(`  e.g. ${emailFor(TEAM_MEMBERS[0].name)} (admin), ${emailFor(TEAM_MEMBERS[1].name)} (member)`);
 }
 
 main()

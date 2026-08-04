@@ -10,14 +10,16 @@ import { signAccessToken, signRefreshToken, verifyRefreshToken, refreshTokenExpi
 import { generateOpaqueToken, hashToken } from "../../lib/tokens";
 import { sendInviteEmail } from "../../lib/mailer";
 import { env } from "../../lib/env";
-import { UnauthorizedError, ValidationError } from "../../lib/errors";
+import { ForbiddenError, UnauthorizedError, ValidationError } from "../../lib/errors";
 import {
   loginBodySchema,
   inviteBodySchema,
   acceptInviteBodySchema,
+  signupBodySchema,
   type LoginBody,
   type InviteBody,
   type AcceptInviteBody,
+  type SignupBody,
 } from "../schemas/auth.schema";
 
 export const authRouter = Router();
@@ -46,6 +48,16 @@ function publicUser(user: User) {
   return { id: user.id, email: user.email, name: user.name, initials: user.initials, role: user.role };
 }
 
+function initialsFor(name: string): string {
+  return name
+    .split(" ")
+    .filter(Boolean)
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+}
+
 async function issueSession(res: Response, user: { id: string; role: UserRole }): Promise<void> {
   const jti = randomUUID();
   const refreshToken = signRefreshToken({ sub: user.id, jti });
@@ -55,6 +67,49 @@ async function issueSession(res: Response, user: { id: string; role: UserRole })
   const accessToken = signAccessToken({ sub: user.id, role: user.role });
   setAuthCookies(res, accessToken, refreshToken);
 }
+
+authRouter.post("/signup", validateBody(signupBodySchema), async (req, res, next) => {
+  try {
+    const body = req.body as SignupBody;
+
+    const existingUserCount = await prisma.user.count();
+    if (existingUserCount > 0) {
+      next(new ForbiddenError("Signup is closed — ask an admin for an invite"));
+      return;
+    }
+
+    const existing = await prisma.user.findUnique({ where: { email: body.email } });
+    if (existing) {
+      next(new ValidationError("A user with this email already exists"));
+      return;
+    }
+
+    const passwordHash = await hashPassword(body.password);
+    const user = await prisma.$transaction(async (tx) => {
+      const created = await tx.user.create({
+        data: {
+          email: body.email,
+          name: body.name,
+          initials: initialsFor(body.name),
+          role: "admin",
+          status: "active",
+          passwordHash,
+        },
+      });
+      await tx.setting.upsert({
+        where: { key: "workspace.name" },
+        create: { key: "workspace.name", value: body.workspaceName, updatedById: created.id },
+        update: { value: body.workspaceName, updatedById: created.id },
+      });
+      return created;
+    });
+
+    await issueSession(res, user);
+    sendData(res, publicUser(user));
+  } catch (error) {
+    next(error);
+  }
+});
 
 authRouter.post("/login", validateBody(loginBodySchema), async (req, res, next) => {
   try {
@@ -162,19 +217,12 @@ authRouter.post(
       }
 
       const rawToken = generateOpaqueToken();
-      const initials = body.name
-        .split(" ")
-        .filter(Boolean)
-        .map((part) => part[0])
-        .join("")
-        .slice(0, 2)
-        .toUpperCase();
 
       const user = await prisma.user.create({
         data: {
           email: body.email,
           name: body.name,
-          initials,
+          initials: initialsFor(body.name),
           role: body.role,
           status: "pending",
           inviteTokenHash: hashToken(rawToken),
