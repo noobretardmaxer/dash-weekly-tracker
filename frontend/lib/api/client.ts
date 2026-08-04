@@ -31,9 +31,9 @@ export async function apiGet<T>(path: string, params?: Record<string, QueryValue
   return response.json() as Promise<T>;
 }
 
-export async function apiPatch<T>(path: string, body: unknown): Promise<T> {
+async function apiMutate<T>(method: "POST" | "PUT" | "PATCH", path: string, body: unknown): Promise<T> {
   const response = await fetch(`/api${path}`, {
-    method: "PATCH",
+    method,
     headers: { Accept: "application/json", "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
@@ -47,4 +47,16 @@ export async function apiPatch<T>(path: string, body: unknown): Promise<T> {
   }
 
   return response.json() as Promise<T>;
+}
+
+export function apiPost<T>(path: string, body: unknown): Promise<T> {
+  return apiMutate<T>("POST", path, body);
+}
+
+export function apiPut<T>(path: string, body: unknown): Promise<T> {
+  return apiMutate<T>("PUT", path, body);
+}
+
+export function apiPatch<T>(path: string, body: unknown): Promise<T> {
+  return apiMutate<T>("PATCH", path, body);
 }
