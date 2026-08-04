@@ -1,6 +1,7 @@
 "use client";
 
-import { Database, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import Image from "next/image";
+import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NAV_ITEMS } from "@/lib/constants/nav-items";
 import { useSidebarCollapsed } from "@/lib/hooks/use-sidebar-collapsed";
@@ -17,8 +18,8 @@ export function Sidebar() {
       )}
     >
       <div className={cn("flex h-14 items-center gap-2 border-b border-sidebar-border px-4", collapsed && "justify-center px-0")}>
-        <div className="flex size-7 shrink-0 items-center justify-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground">
-          <Database className="size-4" strokeWidth={2} />
+        <div className="flex size-7 shrink-0 items-center justify-center">
+          <Image src="/logo.png" alt="HydraDB logo" width={28} height={28} className="size-7" />
         </div>
         {!collapsed && (
           <div className="flex flex-col leading-none">

@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { Database, Menu } from "lucide-react";
+import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { NAV_ITEMS } from "@/lib/constants/nav-items";
@@ -23,8 +24,8 @@ export function MobileNav() {
       <SheetContent side="left" className="w-64 p-0">
         <SheetHeader className="border-b border-border">
           <SheetTitle className="flex items-center gap-2 text-sm">
-            <div className="flex size-7 items-center justify-center rounded-md bg-primary text-primary-foreground">
-              <Database className="size-4" />
+            <div className="flex size-7 items-center justify-center">
+              <Image src="/logo.png" alt="HydraDB logo" width={28} height={28} className="size-7" />
             </div>
             HydraDB
           </SheetTitle>
