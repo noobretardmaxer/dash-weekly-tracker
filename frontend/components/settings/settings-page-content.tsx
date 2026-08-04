@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { useUiSimulation } from "@/lib/hooks/use-ui-simulation";
+import { useCurrentUser } from "@/lib/hooks/queries/use-current-user";
 
 const NOTIFICATION_PREFS = [
   { id: "weekly-digest", label: "Weekly executive digest", description: "A summary of growth metrics every Monday." },
@@ -19,6 +20,7 @@ const NOTIFICATION_PREFS = [
 
 export function SettingsPageContent() {
   const { simulateError, setSimulateError, simulateOffline, setSimulateOffline } = useUiSimulation();
+  const { data: currentUser } = useCurrentUser();
   const [prefs, setPrefs] = useState<Record<string, boolean>>({
     "weekly-digest": true,
     "keyword-alerts": true,
@@ -34,21 +36,23 @@ export function SettingsPageContent() {
         <h3 className="text-sm font-medium">Profile</h3>
         <div className="mt-4 flex items-center gap-4">
           <Avatar className="size-14">
-            <AvatarFallback className="text-lg">SD</AvatarFallback>
+            <AvatarFallback className="text-lg">{currentUser?.initials ?? ""}</AvatarFallback>
           </Avatar>
-          <div>
-            <p className="text-sm font-medium">Sayandeep Das</p>
-            <p className="text-xs text-muted-foreground">Growth Team</p>
-          </div>
+          {currentUser && (
+            <div>
+              <p className="text-sm font-medium">{currentUser.name}</p>
+              <p className="text-xs text-muted-foreground">{currentUser.role}</p>
+            </div>
+          )}
         </div>
         <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="space-y-1.5">
             <Label htmlFor="name">Name</Label>
-            <Input id="name" defaultValue="Sayandeep Das" />
+            <Input id="name" defaultValue={currentUser?.name ?? ""} key={currentUser?.name} />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="email">Email</Label>
-            <Input id="email" defaultValue="sayandeep@hydradb.com" />
+            <Input id="email" defaultValue={currentUser?.email ?? ""} key={currentUser?.email} />
           </div>
         </div>
         <Button size="sm" className="mt-4">
