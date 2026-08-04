@@ -29,13 +29,16 @@ export default function AuthGroupLayout({ children }: { children: ReactNode }) {
 
         {/* Right form panel */}
         <div className="flex flex-1 flex-col items-center justify-center px-6 py-12">
-          {/* Mobile logo — shown only on small screens */}
-          <div className="flex lg:hidden items-center gap-2 mb-10">
-            <Image src="/logo.png" alt="HydraDB logo" width={28} height={28} className="size-7 rounded-sm" />
-            <span className="text-sm font-semibold text-gray-900">HydraDB</span>
-          </div>
+          <div className="w-full max-w-[360px] space-y-10">
+            {/* Logo — always visible above the form */}
+            <div className="flex items-center gap-2.5">
+              <Image src="/logo.png" alt="HydraDB logo" width={32} height={32} className="size-8 rounded-sm" />
+              <div className="flex flex-col leading-none">
+                <span className="text-sm font-semibold text-gray-900 tracking-tight">HydraDB</span>
+                <span className="text-[11px] text-gray-400">Growth Dashboard</span>
+              </div>
+            </div>
 
-          <div className="w-full max-w-[360px]">
             {children}
           </div>
         </div>
