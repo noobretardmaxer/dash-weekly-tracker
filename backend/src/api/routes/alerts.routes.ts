@@ -45,8 +45,9 @@ alertsRouter.patch("/:id", validateBody(updateAlertStatusBodySchema), async (req
 
     const data: Prisma.AlertUpdateInput = {
       status: body.status,
-      // No auth/session wiring yet, so resolvedById can't be attributed to an acting user — v1 limitation.
-      ...(body.status === "resolved" ? { resolvedAt: new Date() } : {}),
+      ...(body.status === "resolved"
+        ? { resolvedAt: new Date(), resolvedBy: { connect: { id: req.user!.id } } }
+        : {}),
     };
 
     const alert = await prisma.alert.update({ where: { id: req.params.id }, data });

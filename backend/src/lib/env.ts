@@ -18,6 +18,18 @@ const envSchema = z.object({
 
   SCHEDULER_DRIVER: z.enum(["bullmq", "trigger"]).default("bullmq"),
 
+  JWT_ACCESS_SECRET: z.string().min(1, "JWT_ACCESS_SECRET is required"),
+  JWT_REFRESH_SECRET: z.string().min(1, "JWT_REFRESH_SECRET is required"),
+  JWT_ACCESS_TTL_MIN: z.coerce.number().default(15),
+  JWT_REFRESH_TTL_DAYS: z.coerce.number().default(30),
+
+  SMTP_HOST: z.string().optional(),
+  SMTP_PORT: z.coerce.number().optional(),
+  SMTP_USER: z.string().optional(),
+  SMTP_PASS: z.string().optional(),
+  SMTP_FROM: z.string().default("HydraDB Growth Dashboard <no-reply@hydradb.com>"),
+  APP_URL: z.string().default("http://localhost:3000"),
+
   POSTHOG_API_KEY: z.string().optional(),
   POSTHOG_PROJECT_ID: z.string().optional(),
   POSTHOG_HOST: z.string().default("https://us.posthog.com"),
