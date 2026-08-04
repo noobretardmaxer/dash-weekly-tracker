@@ -8,6 +8,7 @@ import { HeaderLastSync } from "@/components/layout/header-last-sync";
 import { HeaderGlobalSearch } from "@/components/layout/header-global-search";
 import { HeaderNotifications } from "@/components/layout/header-notifications";
 import { HeaderProfileMenu } from "@/components/layout/header-profile-menu";
+import { HeaderThemeToggle } from "@/components/layout/header-theme-toggle";
 import { OfflineBanner } from "@/components/primitives/offline-banner";
 
 export function Header() {
@@ -29,6 +30,7 @@ export function Header() {
           <HeaderGlobalSearch />
         </div>
         <HeaderLastSync />
+        <HeaderThemeToggle />
         <HeaderNotifications />
         <HeaderProfileMenu />
       </header>
