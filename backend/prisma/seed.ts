@@ -9,8 +9,14 @@ import { createDiscordIntegration } from "../src/integrations/discord";
 import { createRedditIntegration, DEFAULT_REDDIT_KEYWORDS } from "../src/integrations/reddit";
 import { DEFAULT_ALERT_THRESHOLDS } from "../src/services/alerts/rules";
 import { generateExecutiveReport } from "../src/services/reports/generate-executive-report";
+import { hashPassword } from "../src/lib/password";
 
 const prisma = new PrismaClient();
+
+// Dev-only fixed password for every seeded user — printed at the end of the seed run so a
+// fresh `docker compose up` / `prisma db seed` always has usable login credentials without
+// forcing a fresh clone through the invite-accept flow just to try the app out.
+const DEV_PASSWORD = "password123";
 
 function slugify(title: string): string {
   return title
@@ -21,7 +27,7 @@ function slugify(title: string): string {
 
 const TEAM_MEMBERS = [
   { name: "Sayandeep Das", initials: "SD", role: "admin" as const },
-  { name: "Priya Raman", initials: "PR", role: "viewer" as const },
+  { name: "Priya Raman", initials: "PR", role: "editor" as const },
   { name: "Jordan Kim", initials: "JK", role: "viewer" as const },
   { name: "Alex Chen", initials: "AC", role: "viewer" as const },
   { name: "Morgan Lee", initials: "ML", role: "viewer" as const },
@@ -33,10 +39,18 @@ function emailFor(name: string): string {
 }
 
 async function seedUsers(): Promise<void> {
+  const passwordHash = await hashPassword(DEV_PASSWORD);
   for (const member of TEAM_MEMBERS) {
     await prisma.user.upsert({
       where: { email: emailFor(member.name) },
-      create: { email: emailFor(member.name), name: member.name, initials: member.initials, role: member.role },
+      create: {
+        email: emailFor(member.name),
+        name: member.name,
+        initials: member.initials,
+        role: member.role,
+        status: "active",
+        passwordHash,
+      },
       update: { name: member.name, initials: member.initials, role: member.role },
     });
   }
@@ -177,6 +191,10 @@ async function main(): Promise<void> {
 
   const report = await generateExecutiveReport();
   console.log(`Seeded initial executive report: ${report.id}`);
+
+  console.log("\nLogin with any seeded user's email and this dev password:");
+  console.log(`  password: ${DEV_PASSWORD}`);
+  console.log(`  e.g. ${emailFor(TEAM_MEMBERS[0].name)} (admin), ${emailFor(TEAM_MEMBERS[1].name)} (editor), ${emailFor(TEAM_MEMBERS[2].name)} (viewer)`);
 }
 
 main()

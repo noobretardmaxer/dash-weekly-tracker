@@ -5,9 +5,13 @@ const API_URL = process.env.API_URL ?? "http://localhost:4000";
 async function proxy(request: NextRequest, path: string[]): Promise<NextResponse> {
   const targetUrl = `${API_URL}/api/v1/${path.join("/")}${request.nextUrl.search}`;
 
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  const cookie = request.headers.get("cookie");
+  if (cookie) headers.cookie = cookie;
+
   const init: RequestInit = {
     method: request.method,
-    headers: { "Content-Type": "application/json" },
+    headers,
   };
 
   if (request.method !== "GET" && request.method !== "HEAD") {
@@ -19,7 +23,11 @@ async function proxy(request: NextRequest, path: string[]): Promise<NextResponse
   const contentType = response.headers.get("content-type") ?? "";
   const payload = contentType.includes("application/json") ? await response.json() : await response.text();
 
-  return NextResponse.json(payload, { status: response.status });
+  const nextResponse = NextResponse.json(payload, { status: response.status });
+  for (const setCookie of response.headers.getSetCookie()) {
+    nextResponse.headers.append("set-cookie", setCookie);
+  }
+  return nextResponse;
 }
 
 type RouteContext = { params: Promise<{ path: string[] }> };

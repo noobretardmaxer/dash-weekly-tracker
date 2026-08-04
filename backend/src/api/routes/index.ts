@@ -11,8 +11,9 @@ import { settingsRouter } from "./settings.routes";
 import { alertsRouter } from "./alerts.routes";
 import { dashboardRouter } from "./dashboard.routes";
 import { usersRouter } from "./users.routes";
-import { healthRouter } from "./health.routes";
 
+// `health` and `auth` are mounted directly in app.ts, ahead of the `requireAuth` gate —
+// every router mounted here requires a logged-in session.
 export const apiRouter = Router();
 
 apiRouter.use("/dashboard", dashboardRouter);
@@ -27,4 +28,3 @@ apiRouter.use("/reports", reportsRouter);
 apiRouter.use("/settings", settingsRouter);
 apiRouter.use("/alerts", alertsRouter);
 apiRouter.use("/users", usersRouter);
-apiRouter.use("/health", healthRouter);

@@ -32,3 +32,15 @@ export class CircuitOpenError extends AppError {
     super(`[${integration}] circuit breaker is open`, 503, "CIRCUIT_OPEN");
   }
 }
+
+export class UnauthorizedError extends AppError {
+  constructor(message = "Authentication required") {
+    super(message, 401, "UNAUTHORIZED");
+  }
+}
+
+export class ForbiddenError extends AppError {
+  constructor(message = "Insufficient permissions") {
+    super(message, 403, "FORBIDDEN");
+  }
+}
