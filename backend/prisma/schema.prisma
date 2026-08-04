@@ -392,6 +392,49 @@ model KeywordRanking {
   @@map("keyword_rankings")
 }
 
+enum SocialPlatform {
+  twitter
+  linkedin
+  instagram
+  youtube
+}
+
+model Creator {
+  id        String   @id @default(uuid())
+  name      String
+  handle    String
+  avatarUrl String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  posts SocialPost[]
+
+  @@unique([handle])
+  @@map("creators")
+}
+
+model SocialPost {
+  id          String         @id @default(uuid())
+  creatorId   String
+  creator     Creator        @relation(fields: [creatorId], references: [id])
+  platform    SocialPlatform
+  content     String
+  url         String
+  publishedAt DateTime
+  likes       Int
+  comments    Int
+  shares      Int
+  impressions Int
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@unique([url])
+  @@index([publishedAt])
+  @@index([creatorId])
+  @@index([platform])
+  @@map("social_posts")
+}
+
 model CompetitorMetric {
   id               String   @id @default(uuid())
   competitorDomain String

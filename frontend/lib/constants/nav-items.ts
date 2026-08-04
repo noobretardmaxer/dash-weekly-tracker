@@ -7,6 +7,7 @@ import {
   AtSign,
   MessagesSquare,
   Radar,
+  Trophy,
   FileBarChart,
   Settings,
   type LucideIcon,
@@ -27,6 +28,7 @@ export const NAV_ITEMS: NavItem[] = [
   { label: "Twitter/X", href: "/twitter", icon: AtSign },
   { label: "Discord", href: "/discord", icon: MessagesSquare },
   { label: "Reddit Intelligence", href: "/reddit", icon: Radar },
+  { label: "Social Leaderboard", href: "/social-leaderboard", icon: Trophy },
   { label: "Reports", href: "/reports", icon: FileBarChart },
   { label: "Settings", href: "/settings", icon: Settings },
 ];
