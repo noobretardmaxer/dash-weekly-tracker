@@ -31,33 +31,22 @@ services:
   api:
     build:
       context: ./backend
-    command: sh -c "npx prisma migrate deploy && node dist/server.js"
+    command: node dist/server.js
+    env_file: ./backend/.env
     depends_on:
-      postgres:
-        condition: service_healthy
       redis:
         condition: service_healthy
-    environment:
-      MOCK_MODE: "true"
-      DATABASE_URL: postgresql://hydradb:hydradb@postgres:5432/hydradb_growth?schema=public
-      REDIS_URL: redis://redis:6379
-      SCHEDULER_DRIVER: bullmq
-      PORT: "4000"
+    ports:
+      - "4000:4000"
 
   worker:
     build:
       context: ./backend
     command: node dist/worker.js
+    env_file: ./backend/.env
     depends_on:
-      postgres:
-        condition: service_healthy
       redis:
         condition: service_healthy
-    environment:
-      MOCK_MODE: "true"
-      DATABASE_URL: postgresql://hydradb:hydradb@postgres:5432/hydradb_growth?schema=public
-      REDIS_URL: redis://redis:6379
-      SCHEDULER_DRIVER: bullmq
 
   web:
     build:
