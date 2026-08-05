@@ -22,4 +22,4 @@ EXPOSE 4000
 # CMD is overridden per-service in docker-compose.yml:
 #   api:    node dist/server.js
 #   worker: node dist/worker.js
-CMD ["node", "dist/server.js"]
+CMD ["node", "dist/src/server.js"]
