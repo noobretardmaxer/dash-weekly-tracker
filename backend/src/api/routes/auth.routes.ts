@@ -16,6 +16,8 @@ import {
   inviteBodySchema,
   acceptInviteBodySchema,
   signupBodySchema,
+  isAllowedEmail,
+  ALLOWED_EMAIL_DOMAIN,
   type LoginBody,
   type InviteBody,
   type AcceptInviteBody,
@@ -72,6 +74,11 @@ authRouter.post("/signup", validateBody(signupBodySchema), async (req, res, next
   try {
     const body = req.body as SignupBody;
 
+    if (!isAllowedEmail(body.email)) {
+      next(new ValidationError(`Only @${ALLOWED_EMAIL_DOMAIN} email addresses can create a workspace`));
+      return;
+    }
+
     const existingUserCount = await prisma.user.count();
     if (existingUserCount > 0) {
       next(new ForbiddenError("Signup is closed — ask an admin for an invite"));
@@ -114,6 +121,10 @@ authRouter.post("/signup", validateBody(signupBodySchema), async (req, res, next
 authRouter.post("/login", validateBody(loginBodySchema), async (req, res, next) => {
   try {
     const body = req.body as LoginBody;
+    if (!isAllowedEmail(body.email)) {
+      next(new UnauthorizedError("Invalid email or password"));
+      return;
+    }
     const user = await prisma.user.findUnique({ where: { email: body.email } });
     if (!user || !user.passwordHash || user.status !== "active") {
       next(new UnauthorizedError("Invalid email or password"));
@@ -210,6 +221,10 @@ authRouter.post(
   async (req, res, next) => {
     try {
       const body = req.body as InviteBody;
+      if (!isAllowedEmail(body.email)) {
+        next(new ValidationError(`Only @${ALLOWED_EMAIL_DOMAIN} email addresses can be invited`));
+        return;
+      }
       const existing = await prisma.user.findUnique({ where: { email: body.email } });
       if (existing) {
         next(new ValidationError("A user with this email already exists"));

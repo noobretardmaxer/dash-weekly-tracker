@@ -1,5 +1,11 @@
 import { z } from "zod";
 
+export const ALLOWED_EMAIL_DOMAIN = "hydradb.com";
+
+export function isAllowedEmail(email: string): boolean {
+  return email.toLowerCase().endsWith(`@${ALLOWED_EMAIL_DOMAIN}`);
+}
+
 export const loginBodySchema = z.object({
   email: z.string().email(),
   password: z.string().min(1),
