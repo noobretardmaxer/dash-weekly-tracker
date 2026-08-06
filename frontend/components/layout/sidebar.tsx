@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { NAV_ITEMS } from "@/lib/constants/nav-items";
 import { useSidebarCollapsed } from "@/lib/hooks/use-sidebar-collapsed";
 import { SidebarNavItem } from "@/components/layout/sidebar-nav-item";
+import { SidebarNavGroup } from "@/components/layout/sidebar-nav-group";
 
 export function Sidebar() {
   const { collapsed, toggle } = useSidebarCollapsed();
@@ -30,9 +31,13 @@ export function Sidebar() {
       </div>
 
       <nav className="flex-1 space-y-0.5 overflow-y-auto px-2 py-3">
-        {NAV_ITEMS.map((item) => (
-          <SidebarNavItem key={item.href} item={item} collapsed={collapsed} />
-        ))}
+        {NAV_ITEMS.map((item) =>
+          item.children ? (
+            <SidebarNavGroup key={item.href} item={item} collapsed={collapsed} />
+          ) : (
+            <SidebarNavItem key={item.href} item={item} collapsed={collapsed} />
+          )
+        )}
       </nav>
 
       <div className="border-t border-sidebar-border p-2">
