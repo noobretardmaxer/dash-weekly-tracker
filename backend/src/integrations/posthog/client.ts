@@ -66,7 +66,7 @@ export function createPostHogClient(): PostHogClient {
           `SELECT toDate(timestamp) AS date, countIf(event = 'activated') * 100.0 / nullif(countIf(event = 'user_signed_up'), 0) AS value FROM events WHERE timestamp >= '${from}' AND timestamp <= '${to}' GROUP BY date ORDER BY date`
         ),
         runHogQL(
-          `SELECT toDate(timestamp) AS date, avg(properties.$session_duration) AS value FROM events WHERE event = '$pageview' AND timestamp >= '${from}' AND timestamp <= '${to}' GROUP BY date ORDER BY date`
+          `SELECT toDate(timestamp) AS date, avg(toFloat(properties.$session_duration)) AS value FROM events WHERE event = '$pageview' AND timestamp >= '${from}' AND timestamp <= '${to}' GROUP BY date ORDER BY date`
         ),
         runHogQL(
           `SELECT toDate(timestamp) AS date, countIf(properties.$session_page_count = 1) * 100.0 / nullif(count(), 0) AS value FROM events WHERE event = '$pageview' AND timestamp >= '${from}' AND timestamp <= '${to}' GROUP BY date ORDER BY date`
@@ -84,7 +84,7 @@ export function createPostHogClient(): PostHogClient {
         `SELECT properties.$geoip_country_name AS name, count() AS value FROM events WHERE event = '$pageview' AND timestamp >= '${from}' AND timestamp <= '${to}' GROUP BY name ORDER BY value DESC LIMIT 10`
       ),
       runHogQL(
-        `SELECT properties.$pathname AS page, count() AS visitors, avg(properties.$session_duration) AS avgTimeSeconds FROM events WHERE event = '$pageview' AND timestamp >= '${from}' AND timestamp <= '${to}' GROUP BY page ORDER BY visitors DESC LIMIT 8`
+        `SELECT properties.$pathname AS page, count() AS visitors, avg(toFloat(properties.$session_duration)) AS avgTimeSeconds FROM events WHERE event = '$pageview' AND timestamp >= '${from}' AND timestamp <= '${to}' GROUP BY page ORDER BY visitors DESC LIMIT 8`
       ),
       runHogQL(
         `SELECT properties.$pathname AS page, count() AS exits FROM events WHERE event = '$pageleave' AND timestamp >= '${from}' AND timestamp <= '${to}' GROUP BY page ORDER BY exits DESC LIMIT 8`
