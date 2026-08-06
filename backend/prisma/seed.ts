@@ -2,7 +2,7 @@ import { PrismaClient } from "@prisma/client";
 import { MASTER_SERIES_DAYS } from "../src/integrations/shared/fixtures/time-series";
 import { createPostHogIntegration } from "../src/integrations/posthog";
 import { createGscIntegration } from "../src/integrations/gsc";
-import { createAhrefsIntegration } from "../src/integrations/ahrefs";
+import { createSemrushIntegration } from "../src/integrations/semrush";
 import { createTwitterIntegration } from "../src/integrations/twitter";
 import { createDiscordIntegration } from "../src/integrations/discord";
 import { createRedditIntegration, DEFAULT_REDDIT_KEYWORDS } from "../src/integrations/reddit";
@@ -91,7 +91,7 @@ async function main(): Promise<void> {
 
   await seedIntegration("posthog", createPostHogIntegration);
   await seedIntegration("gsc", createGscIntegration);
-  await seedIntegration("ahrefs", createAhrefsIntegration);
+  await seedIntegration("semrush", createSemrushIntegration);
   await seedIntegration("twitter", createTwitterIntegration);
   await seedIntegration("discord", createDiscordIntegration);
   await seedIntegration("reddit", createRedditIntegration);

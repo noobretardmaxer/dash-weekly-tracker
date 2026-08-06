@@ -1,12 +1,12 @@
 import { env } from "../../lib/env";
 import { logger } from "../../lib/logger";
 
-export type IntegrationKey = "posthog" | "gsc" | "ahrefs" | "twitter" | "discord" | "reddit" | "blog" | "social";
+export type IntegrationKey = "posthog" | "gsc" | "semrush" | "twitter" | "discord" | "reddit" | "blog" | "social";
 
 const PER_INTEGRATION_OVERRIDE: Record<IntegrationKey, boolean | undefined> = {
   posthog: env.POSTHOG_MOCK_MODE,
   gsc: env.GSC_MOCK_MODE,
-  ahrefs: env.AHREFS_MOCK_MODE,
+  semrush: env.SEMRUSH_MOCK_MODE,
   twitter: env.TWITTER_MOCK_MODE,
   discord: env.DISCORD_MOCK_MODE,
   reddit: env.REDDIT_MOCK_MODE,
@@ -19,7 +19,7 @@ const PER_INTEGRATION_OVERRIDE: Record<IntegrationKey, boolean | undefined> = {
 const HAS_CREDENTIALS: Record<IntegrationKey, () => boolean> = {
   posthog: () => Boolean(env.POSTHOG_API_KEY && env.POSTHOG_PROJECT_ID),
   gsc: () => Boolean(env.GOOGLE_SERVICE_ACCOUNT_EMAIL && env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY && env.GSC_SITE_URL),
-  ahrefs: () => Boolean(env.AHREFS_API_TOKEN),
+  semrush: () => Boolean(env.SEMRUSH_API_KEY),
   twitter: () => Boolean(env.TWITTER_BEARER_TOKEN),
   discord: () => Boolean(env.DISCORD_BOT_TOKEN && env.DISCORD_GUILD_ID),
   reddit: () => Boolean(env.REDDIT_CLIENT_ID && env.REDDIT_CLIENT_SECRET && env.REDDIT_USERNAME && env.REDDIT_PASSWORD),

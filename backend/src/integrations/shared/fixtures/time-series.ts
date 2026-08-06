@@ -58,7 +58,7 @@ export function generateTimeSeries({
 export const FIXTURE_SEEDS = {
   posthog: 1001,
   gsc: 1003,
-  ahrefs: 1002,
+  semrush: 1002,
   twitter: 1005,
   discord: 1006,
   reddit: 1007,

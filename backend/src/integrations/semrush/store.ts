@@ -1,14 +1,7 @@
 import { prisma } from "../../db/prisma-client";
-import type { AhrefsNormalizedBundle } from "./types";
+import type { SemrushNormalizedBundle } from "./types";
 
-/**
- * Unlike the single-table integrations, one Ahrefs sync run writes to three
- * Prisma tables: SeoMetric (one row for the day), KeywordRanking (many rows,
- * upserted by the (keyword, checkedAt) unique constraint), and
- * CompetitorMetric (many rows, upserted by the (competitorDomain, date)
- * unique constraint). The returned count sums rows written across all three.
- */
-export async function store(bundles: AhrefsNormalizedBundle[]): Promise<{ count: number }> {
+export async function store(bundles: SemrushNormalizedBundle[]): Promise<{ count: number }> {
   let count = 0;
 
   for (const bundle of bundles) {

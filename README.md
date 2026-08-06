@@ -37,7 +37,7 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 
 ## Backend
 
-The dashboard is backed by a standalone Node/TypeScript API + worker service in [`backend/`](backend), storing history in Postgres and syncing from PostHog, Google Search Console, Ahrefs, Twitter/X, Discord, and Reddit on a schedule (BullMQ by default, Trigger.dev optionally). See [`backend/README.md`](backend/README.md) for the full architecture (integration module pattern, database schema, scheduler, analytics/alerts/report generation) and exactly how to connect each real integration.
+The dashboard is backed by a standalone Node/TypeScript API + worker service in [`backend/`](backend), storing history in Postgres and syncing from PostHog, Google Search Console, SEMrush, Twitter/X, Discord, and Reddit on a schedule (BullMQ by default, Trigger.dev optionally). See [`backend/README.md`](backend/README.md) for the full architecture (integration module pattern, database schema, scheduler, analytics/alerts/report generation) and exactly how to connect each real integration.
 
 ### Quickest path: fully mocked, zero credentials
 
@@ -65,4 +65,4 @@ API_URL=http://localhost:4000 npm run dev   # frontend on :3000
 
 ### Connecting a real integration
 
-Leave everything on `MOCK_MODE=true` and flip one integration at a time by setting its credentials in `backend/.env` and its `<INTEGRATION>_MOCK_MODE=false` override — see `backend/.env.example` for the full list of env vars per integration (PostHog, GSC, Ahrefs, Twitter/X, Discord, Reddit) and `backend/README.md` for where to obtain each one.
+Leave everything on `MOCK_MODE=true` and flip one integration at a time by setting its credentials in `backend/.env` and its `<INTEGRATION>_MOCK_MODE=false` override — see `backend/.env.example` for the full list of env vars per integration (PostHog, GSC, SEMrush, Twitter/X, Discord, Reddit) and `backend/README.md` for where to obtain each one.

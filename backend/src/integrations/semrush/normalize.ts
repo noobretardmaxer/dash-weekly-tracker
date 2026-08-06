@@ -1,6 +1,6 @@
 import type {
-  AhrefsNormalizedBundle,
-  AhrefsRawPayload,
+  SemrushNormalizedBundle,
+  SemrushRawPayload,
   CompetitorMetricRecord,
   KeywordRankingRecord,
   SeoMetricRecord,
@@ -11,16 +11,10 @@ function todayAtMidnight(): Date {
   return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
 }
 
-/**
- * Ahrefs data is a point-in-time snapshot, not a client-side date range
- * series, so unlike PostHog/GSC normalize() always produces a single bundle
- * per sync run, stamped with today's date -- not one record per day in the
- * requested range.
- */
 export async function normalize(
-  raw: AhrefsRawPayload,
-  source: "ahrefs" | "mock"
-): Promise<AhrefsNormalizedBundle[]> {
+  raw: SemrushRawPayload,
+  source: "semrush" | "mock"
+): Promise<SemrushNormalizedBundle[]> {
   const date = todayAtMidnight();
 
   const seoMetric: SeoMetricRecord = {

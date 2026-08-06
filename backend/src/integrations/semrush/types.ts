@@ -21,16 +21,7 @@ export type CompetitorProfileRow = {
   backlinks: number;
 };
 
-/**
- * Shape produced by client.ts (real Ahrefs API v3 responses, reshaped) and
- * mock-client.ts (faker fixtures) alike -- normalize() only ever sees this
- * shape, regardless of which client produced it.
- *
- * Unlike PostHog/GSC, Ahrefs' API returns point-in-time snapshot metrics for
- * a target domain (not a client-side date range series), so the scalar
- * fields below are "as of now" values rather than daily series.
- */
-export type AhrefsRawPayload = {
+export type SemrushRawPayload = {
   organicTraffic: number;
   organicKeywords: number;
   domainRating: number;
@@ -45,9 +36,9 @@ export type AhrefsRawPayload = {
   competitorProfiles: CompetitorProfileRow[];
 };
 
-export interface AhrefsClient {
+export interface SemrushClient {
   authenticate(): Promise<void>;
-  fetch(range: { from: Date; to: Date }): Promise<AhrefsRawPayload>;
+  fetch(range: { from: Date; to: Date }): Promise<SemrushRawPayload>;
 }
 
 export type SeoMetricRecord = {
@@ -62,7 +53,7 @@ export type SeoMetricRecord = {
   topPages: SeoTopPage[];
   fastestGrowingKeywords: KeywordMovement[];
   losingKeywords: KeywordMovement[];
-  source: "ahrefs" | "mock";
+  source: "semrush" | "mock";
 };
 
 export type KeywordRankingRecord = {
@@ -87,14 +78,7 @@ export type CompetitorMetricRecord = {
   backlinks: number;
 };
 
-/**
- * Ahrefs is unusual among these integrations: one sync run must write to
- * three Prisma tables (SeoMetric, KeywordRanking, CompetitorMetric), not
- * one. normalize() returns an array of this composite bundle type -- in
- * practice always a single element per sync run, since Ahrefs data is a
- * snapshot, not a genuine multi-day series from a single API call.
- */
-export type AhrefsNormalizedBundle = {
+export type SemrushNormalizedBundle = {
   seoMetric: SeoMetricRecord;
   keywordRankings: KeywordRankingRecord[];
   competitorMetrics: CompetitorMetricRecord[];

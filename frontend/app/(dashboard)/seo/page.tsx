@@ -9,7 +9,7 @@ export default function SeoPage() {
   return (
     <div className="space-y-6">
       <SectionHeader title="SEO" description="Organic performance, keyword rankings, and competitor benchmarking." />
-      <SyncStatusBanner integration="ahrefs" label="SEO" />
+      <SyncStatusBanner integration="semrush" label="SEO" />
       <Tabs defaultValue="overview">
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>

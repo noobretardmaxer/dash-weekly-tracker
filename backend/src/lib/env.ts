@@ -53,9 +53,10 @@ const envSchema = z.object({
   GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY: z.string().optional(),
   GSC_MOCK_MODE: boolFromEnv,
 
-  AHREFS_API_TOKEN: z.string().optional(),
-  AHREFS_TARGET: z.string().default("hydradb.com"),
-  AHREFS_MOCK_MODE: boolFromEnv,
+  SEMRUSH_API_KEY: z.string().optional(),
+  SEMRUSH_TARGET: z.string().default("hydradb.com"),
+  SEMRUSH_DATABASE: z.string().default("us"),
+  SEMRUSH_MOCK_MODE: boolFromEnv,
 
   TWITTER_BEARER_TOKEN: z.string().optional(),
   TWITTER_USERNAME: z.string().default("hydradb"),
