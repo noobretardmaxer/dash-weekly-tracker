@@ -64,4 +64,5 @@ export const FIXTURE_SEEDS = {
   reddit: 1007,
   keywords: 1008,
   content: 1004,
+  social: 1009,
 } as const;

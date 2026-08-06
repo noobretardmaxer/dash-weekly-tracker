@@ -1,4 +1,5 @@
 import { SectionHeader } from "@/components/primitives/section-header";
+import { SyncStatusBanner } from "@/components/primitives/sync-status-banner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SeoOverview } from "@/components/seo/seo-overview";
 import { KeywordRankingsTable } from "@/components/seo/keyword-rankings-table";
@@ -8,6 +9,7 @@ export default function SeoPage() {
   return (
     <div className="space-y-6">
       <SectionHeader title="SEO" description="Organic performance, keyword rankings, and competitor benchmarking." />
+      <SyncStatusBanner integration="ahrefs" label="SEO" />
       <Tabs defaultValue="overview">
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>

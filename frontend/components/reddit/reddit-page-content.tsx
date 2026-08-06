@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { SectionHeader } from "@/components/primitives/section-header";
+import { SyncStatusBanner } from "@/components/primitives/sync-status-banner";
 import { DataTable } from "@/components/primitives/data-table";
 import { ErrorState } from "@/components/primitives/error-state";
 import { TableSkeleton } from "@/components/primitives/skeletons/table-skeleton";
@@ -81,6 +82,7 @@ export function RedditPageContent() {
         title="Reddit Intelligence"
         description="Triage HydraDB mentions across Reddit like a CRM pipeline."
       />
+      <SyncStatusBanner integration="reddit" label="Reddit" />
 
       <div className="flex flex-wrap gap-2 text-xs">
         <span className="rounded-full border border-border bg-secondary/40 px-3 py-1">{newCount} New</span>

@@ -1,7 +1,7 @@
 import { env } from "../../lib/env";
 import { logger } from "../../lib/logger";
 
-export type IntegrationKey = "posthog" | "gsc" | "ahrefs" | "twitter" | "discord" | "reddit";
+export type IntegrationKey = "posthog" | "gsc" | "ahrefs" | "twitter" | "discord" | "reddit" | "blog" | "social";
 
 const PER_INTEGRATION_OVERRIDE: Record<IntegrationKey, boolean | undefined> = {
   posthog: env.POSTHOG_MOCK_MODE,
@@ -10,6 +10,10 @@ const PER_INTEGRATION_OVERRIDE: Record<IntegrationKey, boolean | undefined> = {
   twitter: env.TWITTER_MOCK_MODE,
   discord: env.DISCORD_MOCK_MODE,
   reddit: env.REDDIT_MOCK_MODE,
+  // No real source exists for these yet — they always produce fixture data (their
+  // index.ts uses the fixture client directly and never consults isMockMode).
+  blog: true,
+  social: true,
 };
 
 const HAS_CREDENTIALS: Record<IntegrationKey, () => boolean> = {
@@ -19,6 +23,8 @@ const HAS_CREDENTIALS: Record<IntegrationKey, () => boolean> = {
   twitter: () => Boolean(env.TWITTER_BEARER_TOKEN),
   discord: () => Boolean(env.DISCORD_BOT_TOKEN && env.DISCORD_GUILD_ID),
   reddit: () => Boolean(env.REDDIT_CLIENT_ID && env.REDDIT_CLIENT_SECRET && env.REDDIT_USERNAME && env.REDDIT_PASSWORD),
+  blog: () => true,
+  social: () => true,
 };
 
 /**

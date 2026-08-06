@@ -2,6 +2,7 @@
 
 import type { ColumnDef } from "@tanstack/react-table";
 import { SectionHeader } from "@/components/primitives/section-header";
+import { SyncStatusBanner } from "@/components/primitives/sync-status-banner";
 import { ChartCard } from "@/components/primitives/chart-card";
 import { KpiCard } from "@/components/primitives/kpi-card";
 import { DataTable } from "@/components/primitives/data-table";
@@ -69,6 +70,7 @@ export function WebsitePageContent() {
   return (
     <div className="space-y-6">
       <SectionHeader title="Website Analytics" description="Traffic, engagement, and conversion across the marketing site." />
+      <SyncStatusBanner integration="posthog" label="Website analytics" />
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <KpiCard metric={data.kpis.avgSessionDuration} />
