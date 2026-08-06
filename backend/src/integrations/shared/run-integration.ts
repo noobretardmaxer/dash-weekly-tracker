@@ -6,7 +6,7 @@ import { withRetry } from "../../lib/retry";
 import { getCircuitBreaker } from "./circuit-breaker";
 import type { DateRange, IntegrationModule } from "./types";
 import type { IntegrationName as PrismaIntegrationName } from "@prisma/client";
-import { runAlertChecks } from "../../services/alerts/engine";
+import { runAlertChecks, recordSyncFailureAlert } from "../../services/alerts/engine";
 
 export type RunIntegrationOptions = {
   jobId?: string;
@@ -95,6 +95,12 @@ export async function runIntegration<TRaw, TNormalized>(
         data: { lastRunAt: finishedAt, lastDurationMs: durationMs, lastStatus: "failure", lastError: message },
       });
     }
+
+    // Surface the failure as an alert (UI + optional webhook) so a broken sync
+    // is visible instead of only living in sync_logs. Fire-and-forget.
+    recordSyncFailureAlert(module.name, message, { partial: isCircuitOpen }).catch((err) =>
+      log.error({ err }, "failed to record sync failure alert")
+    );
 
     if (!(error instanceof IntegrationFetchError) && !isCircuitOpen) {
       throw error;

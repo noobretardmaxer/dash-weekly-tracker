@@ -1,6 +1,7 @@
 "use client";
 
 import { SectionHeader } from "@/components/primitives/section-header";
+import { SyncStatusBanner } from "@/components/primitives/sync-status-banner";
 import { ChartCard } from "@/components/primitives/chart-card";
 import { ErrorState } from "@/components/primitives/error-state";
 import { ChartCardSkeleton } from "@/components/primitives/skeletons/chart-card-skeleton";
@@ -40,6 +41,7 @@ export function SearchConsolePageContent() {
   return (
     <div className="space-y-6">
       <SectionHeader title="Google Search Console" description="Organic search visibility as reported by Search Console." />
+      <SyncStatusBanner integration="gsc" label="Search Console" />
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <ChartCard title="Clicks">

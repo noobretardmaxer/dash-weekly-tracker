@@ -2,6 +2,7 @@
 
 import type { ColumnDef } from "@tanstack/react-table";
 import { SectionHeader } from "@/components/primitives/section-header";
+import { SyncStatusBanner } from "@/components/primitives/sync-status-banner";
 import { ChartCard } from "@/components/primitives/chart-card";
 import { KpiCard } from "@/components/primitives/kpi-card";
 import { DataTable } from "@/components/primitives/data-table";
@@ -123,6 +124,7 @@ export function DiscordPageContent() {
   return (
     <div className="space-y-6">
       <SectionHeader title="Discord" description="Community growth and engagement across the HydraDB Discord server." />
+      <SyncStatusBanner integration="discord" label="Discord" />
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {cards.map((metric) => (

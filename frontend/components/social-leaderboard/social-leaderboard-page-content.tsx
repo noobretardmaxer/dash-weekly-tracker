@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { SectionHeader } from "@/components/primitives/section-header";
+import { SyncStatusBanner } from "@/components/primitives/sync-status-banner";
 import { KpiCard } from "@/components/primitives/kpi-card";
 import { DataTable } from "@/components/primitives/data-table";
 import { ErrorState } from "@/components/primitives/error-state";
@@ -67,6 +68,7 @@ export function SocialLeaderboardPageContent() {
   return (
     <div className="space-y-6">
       <SectionHeader title="Social Leaderboard" description="What content is going out, and who's driving the most traction." />
+      <SyncStatusBanner integration="social" label="Social Leaderboard" />
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {cards.map((metric) => (

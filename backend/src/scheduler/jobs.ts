@@ -6,6 +6,8 @@ import { createAhrefsIntegration } from "../integrations/ahrefs";
 import { createTwitterIntegration } from "../integrations/twitter";
 import { createDiscordIntegration } from "../integrations/discord";
 import { createRedditIntegration } from "../integrations/reddit";
+import { createBlogIntegration } from "../integrations/blog";
+import { createSocialIntegration } from "../integrations/social";
 import { generateExecutiveReport } from "../services/reports/generate-executive-report";
 import type { IntegrationModule } from "../integrations/shared/types";
 import type { IntegrationKey } from "../integrations/shared/mock-mode";
@@ -44,6 +46,11 @@ export const INTEGRATION_JOBS: IntegrationJobSpec[] = [
   // run, since the Ahrefs integration writes seo_metrics, keyword_rankings, and
   // competitor_metrics together (see integrations/ahrefs/store.ts).
   { key: "ahrefs", name: "ahrefs-sync", cronExpr: DAILY_CRON, createModule: createAhrefsIntegration, rangeDays: 1, backfillDays: 1 },
+  // Blog + Social have no real third-party source yet (fixture data); they still
+  // run as first-class daily jobs so the Content and Social Leaderboard panels
+  // populate in production. Larger backfill windows seed the full history.
+  { key: "blog", name: "blog-sync", cronExpr: DAILY_CRON, createModule: createBlogIntegration, rangeDays: 7, backfillDays: 200 },
+  { key: "social", name: "social-sync", cronExpr: DAILY_CRON, createModule: createSocialIntegration, rangeDays: 7, backfillDays: 200 },
 ];
 
 async function ensureJobRecord(name: string, cronExpr: string): Promise<string> {

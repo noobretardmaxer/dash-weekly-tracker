@@ -2,6 +2,7 @@
 
 import type { ColumnDef } from "@tanstack/react-table";
 import { SectionHeader } from "@/components/primitives/section-header";
+import { SyncStatusBanner } from "@/components/primitives/sync-status-banner";
 import { ChartCard } from "@/components/primitives/chart-card";
 import { KpiCard } from "@/components/primitives/kpi-card";
 import { DataTable } from "@/components/primitives/data-table";
@@ -134,6 +135,7 @@ export function ContentPageContent() {
   return (
     <div className="space-y-6">
       <SectionHeader title="Content" description="Blog publishing cadence, traffic, and downstream conversions." />
+      <SyncStatusBanner integration="blog" label="Content" />
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {cards.map((metric) => (

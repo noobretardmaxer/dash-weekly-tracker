@@ -1,0 +1,119 @@
+# Render Blueprint for the HydraDB Growth Dashboard.
+#
+# WHY THIS EXISTS: the dashboard has THREE processes, and the data-populating one
+# (the worker) previously lived only in docker-compose.yml — so a Render deploy
+# that ran only the API left Postgres empty and every panel blank. Declaring all
+# three here (plus the full env contract) makes the worker a first-class,
+# non-forgettable part of every deploy.
+#
+#   1. api    — Express REST API (reads Postgres only)          -> node dist/server.js
+#   2. worker — BullMQ scheduler + startup backfill (writes DB) -> node dist/worker.js
+#   3. web    — Next.js frontend (proxies /api/* to the API)    -> next start
+#
+# Postgres is external (Neon) and Redis is external (Upstash) — both are provided
+# as secrets (sync: false), not Render-managed resources. Fill every `sync: false`
+# value in the Render dashboard after first apply.
+
+envVarGroups:
+  # Shared by the api + worker so they always run with identical configuration.
+  - name: hydradb-backend
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # Real integrations in prod. PostHog/GSC/Ahrefs/Twitter/Discord/Reddit each
+      # fall back to fixture data automatically if their credentials are missing.
+      - key: MOCK_MODE
+        value: "false"
+      # Backfill history on worker boot so a fresh deploy isn't blank until the
+      # first cron tick. Safe to set "false" once history exists.
+      - key: BACKFILL_ON_STARTUP
+        value: "true"
+      - key: SCHEDULER_DRIVER
+        value: bullmq
+      # Neon Postgres connection string.
+      - key: DATABASE_URL
+        sync: false
+      # Upstash Redis — MUST use the rediss:// (TLS) scheme, or BullMQ can't
+      # connect and the worker never runs. Upstash eviction must be `noeviction`.
+      - key: REDIS_URL
+        sync: false
+      # Generated once and shared across api + worker (same signing key).
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      # Public URL of the frontend (used to build invite links).
+      - key: APP_URL
+        sync: false
+      # Optional Discord/Slack incoming-webhook for sync-failure alerts.
+      - key: ALERT_WEBHOOK_URL
+        sync: false
+      # Integration credentials — set the ones you use; the rest fall back to mock.
+      - key: POSTHOG_API_KEY
+        sync: false
+      - key: POSTHOG_PROJECT_ID
+        sync: false
+      - key: POSTHOG_HOST
+        value: https://us.posthog.com
+      - key: GSC_SITE_URL
+        sync: false
+      - key: GOOGLE_SERVICE_ACCOUNT_EMAIL
+        sync: false
+      - key: GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY
+        sync: false
+      - key: AHREFS_API_TOKEN
+        sync: false
+      - key: TWITTER_BEARER_TOKEN
+        sync: false
+      - key: DISCORD_BOT_TOKEN
+        sync: false
+      - key: DISCORD_GUILD_ID
+        sync: false
+      - key: REDDIT_CLIENT_ID
+        sync: false
+      - key: REDDIT_CLIENT_SECRET
+        sync: false
+      - key: REDDIT_USERNAME
+        sync: false
+      - key: REDDIT_PASSWORD
+        sync: false
+
+services:
+  - type: web
+    name: hydradb-api
+    runtime: node
+    rootDir: backend
+    plan: starter # a tier that does NOT spin down, so cron/backfill stay reliable
+    buildCommand: npm install && npm run prisma:generate && npm run build
+    startCommand: npm run start
+    # Run DB migrations once, before the new version goes live.
+    preDeployCommand: npm run prisma:deploy
+    healthCheckPath: /api/v1/health/ready
+    envVars:
+      - fromGroup: hydradb-backend
+
+  - type: worker
+    name: hydradb-worker
+    runtime: node
+    rootDir: backend
+    plan: starter
+    buildCommand: npm install && npm run prisma:generate && npm run build
+    startCommand: npm run start:worker
+    envVars:
+      - fromGroup: hydradb-backend
+
+  - type: web
+    name: hydradb-web
+    runtime: node
+    rootDir: frontend
+    plan: starter
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # THE LINCHPIN: the base URL of the api service, with NO trailing slash and
+      # NO /api/v1 suffix (the proxy appends /api/v1/...). e.g.
+      # https://hydradb-api.onrender.com — set after the api service has a URL.
+      - key: API_URL
+        sync: false

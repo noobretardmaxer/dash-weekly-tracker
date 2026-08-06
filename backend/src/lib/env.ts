@@ -39,6 +39,10 @@ const envSchema = z.object({
   SMTP_FROM: z.string().default("HydraDB Growth Dashboard <no-reply@hydradb.com>"),
   APP_URL: z.string().default("http://localhost:3000"),
 
+  // Optional outbound webhook (Discord/Slack incoming-webhook URL) that receives
+  // a message whenever an integration sync fails. Unset (or empty) disables it.
+  ALERT_WEBHOOK_URL: z.union([z.string().url(), z.literal("")]).optional(),
+
   POSTHOG_API_KEY: z.string().optional(),
   POSTHOG_PROJECT_ID: z.string().optional(),
   POSTHOG_HOST: z.string().default("https://us.posthog.com"),
@@ -74,6 +78,33 @@ const envSchema = z.object({
 
 export type Env = z.infer<typeof envSchema>;
 
+/**
+ * Fail-fast / warn-loud checks for misconfigurations that otherwise surface only
+ * as a mysterious blank dashboard (worker can't connect to Redis → never syncs).
+ * Uses console (not the logger) to avoid an import cycle, and runs once at import.
+ */
+function validateRuntimeConfig(data: Env): void {
+  // Upstash and most managed Redis require TLS; ioredis only enables TLS on the
+  // `rediss://` scheme. A plain `redis://` URL silently fails to connect, which
+  // stops BullMQ — so the worker never runs and nothing is ever synced.
+  if (!/^rediss:\/\//i.test(data.REDIS_URL)) {
+    if (/upstash\.io/i.test(data.REDIS_URL) || data.NODE_ENV === "production") {
+      // eslint-disable-next-line no-console
+      console.warn(
+        "[config] REDIS_URL is not a rediss:// (TLS) URL. Upstash/managed Redis " +
+          "require TLS — BullMQ will fail to connect and the worker will not run. " +
+          "Set REDIS_URL to a rediss:// URL."
+      );
+    }
+  }
+
+  // eslint-disable-next-line no-console
+  console.info(
+    `[config] loaded: NODE_ENV=${data.NODE_ENV} MOCK_MODE=${data.MOCK_MODE} ` +
+      `BACKFILL_ON_STARTUP=${data.BACKFILL_ON_STARTUP} SCHEDULER_DRIVER=${data.SCHEDULER_DRIVER}`
+  );
+}
+
 function loadEnv(): Env {
   const parsed = envSchema.safeParse(process.env);
   if (!parsed.success) {
@@ -81,6 +112,7 @@ function loadEnv(): Env {
     console.error("Invalid environment configuration:", parsed.error.flatten().fieldErrors);
     throw new Error("Invalid environment configuration");
   }
+  validateRuntimeConfig(parsed.data);
   return parsed.data;
 }
 

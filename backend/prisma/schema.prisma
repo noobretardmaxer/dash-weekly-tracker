@@ -110,6 +110,8 @@ enum IntegrationName {
   twitter
   discord
   reddit
+  blog
+  social
 }
 
 model SyncLog {
@@ -137,6 +139,7 @@ enum AlertType {
   activation_drop
   signups_drop
   mention_spike
+  sync_failure
 }
 
 enum AlertSeverity {

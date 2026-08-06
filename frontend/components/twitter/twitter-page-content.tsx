@@ -1,6 +1,7 @@
 "use client";
 
 import { SectionHeader } from "@/components/primitives/section-header";
+import { SyncStatusBanner } from "@/components/primitives/sync-status-banner";
 import { ChartCard } from "@/components/primitives/chart-card";
 import { KpiCard } from "@/components/primitives/kpi-card";
 import { ErrorState } from "@/components/primitives/error-state";
@@ -98,6 +99,7 @@ export function TwitterPageContent() {
   return (
     <div className="space-y-6">
       <SectionHeader title="Twitter / X" description="Audience growth, engagement, and reach on Twitter/X." />
+      <SyncStatusBanner integration="twitter" label="Twitter / X" />
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {cards.map((metric) => (
