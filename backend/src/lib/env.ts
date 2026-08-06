@@ -18,6 +18,15 @@ const envSchema = z.object({
 
   SCHEDULER_DRIVER: z.enum(["bullmq", "trigger"]).default("bullmq"),
 
+  // When true, the worker runs a one-off historical backfill of every integration
+  // on startup (BullMQ cron jobs otherwise only fire at the next tick, so a fresh
+  // deploy shows no data until then). Set false once history exists to avoid
+  // re-backfilling on every restart.
+  BACKFILL_ON_STARTUP: z
+    .enum(["true", "false"])
+    .default("true")
+    .transform((v) => v === "true"),
+
   JWT_ACCESS_SECRET: z.string().min(1, "JWT_ACCESS_SECRET is required"),
   JWT_REFRESH_SECRET: z.string().min(1, "JWT_REFRESH_SECRET is required"),
   JWT_ACCESS_TTL_MIN: z.coerce.number().default(15),
