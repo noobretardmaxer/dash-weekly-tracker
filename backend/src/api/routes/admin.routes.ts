@@ -1,17 +1,11 @@
 import { Router } from "express";
 import { prisma } from "../../db/prisma-client";
 import { logger } from "../../lib/logger";
-import { requireRole } from "../middleware/auth";
 import { ValidationError, NotFoundError } from "../../lib/errors";
 import { sendData } from "../utils/api-response";
 import { INTEGRATION_JOBS, runIntegrationJobOnce, runAllIntegrationsOnce } from "../../scheduler/jobs";
 
 export const adminRouter = Router();
-
-// Every route here is admin-only. Manual sync runs directly in the API process
-// via runIntegration — no Redis/worker dependency — so it works as an escape
-// hatch even when the scheduler worker is down or misconfigured.
-adminRouter.use(requireRole("admin"));
 
 function parseDays(raw: unknown): number | undefined {
   if (raw === undefined) return undefined;

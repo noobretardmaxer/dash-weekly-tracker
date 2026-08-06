@@ -27,18 +27,6 @@ const envSchema = z.object({
     .default("true")
     .transform((v) => v === "true"),
 
-  JWT_ACCESS_SECRET: z.string().min(1, "JWT_ACCESS_SECRET is required"),
-  JWT_REFRESH_SECRET: z.string().min(1, "JWT_REFRESH_SECRET is required"),
-  JWT_ACCESS_TTL_MIN: z.coerce.number().default(15),
-  JWT_REFRESH_TTL_DAYS: z.coerce.number().default(30),
-
-  SMTP_HOST: z.string().optional(),
-  SMTP_PORT: z.coerce.number().optional(),
-  SMTP_USER: z.string().optional(),
-  SMTP_PASS: z.string().optional(),
-  SMTP_FROM: z.string().default("HydraDB Growth Dashboard <no-reply@hydradb.com>"),
-  APP_URL: z.string().default("http://localhost:3000"),
-
   // Optional outbound webhook (Discord/Slack incoming-webhook URL) that receives
   // a message whenever an integration sync fails. Unset (or empty) disables it.
   ALERT_WEBHOOK_URL: z.union([z.string().url(), z.literal("")]).optional(),

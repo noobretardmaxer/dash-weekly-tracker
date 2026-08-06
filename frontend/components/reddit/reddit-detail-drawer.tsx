@@ -5,10 +5,8 @@ import { ExternalLink } from "lucide-react";
 import { Drawer } from "@/components/primitives/drawer";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { STATUS_LABELS, type RedditMentionRow } from "@/lib/api/reddit";
-import { useUsers } from "@/lib/hooks/queries/use-users";
 import { useUpdateRedditMention } from "@/lib/hooks/mutations/use-update-reddit-mention";
 import { formatDateFull } from "@/lib/utils/format";
 
@@ -23,7 +21,6 @@ export function RedditDetailDrawer({
 }) {
   const [suggestedReply, setSuggestedReply] = useState(row.suggestedReply);
   const [internalNotes, setInternalNotes] = useState("");
-  const { data: users } = useUsers();
   const updateMention = useUpdateRedditMention();
 
   return (
@@ -104,21 +101,7 @@ export function RedditDetailDrawer({
 
       <div>
         <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">Assigned Owner</p>
-        <Select
-          value={row.ownerId ?? ""}
-          onValueChange={(newId) => updateMention.mutate({ id: row.id, patch: { ownerId: newId || null } })}
-        >
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Unassigned" />
-          </SelectTrigger>
-          <SelectContent>
-            {(users ?? []).map((user) => (
-              <SelectItem key={user.id} value={user.id}>
-                {user.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <p className="text-sm text-muted-foreground">{row.ownerId ?? "Unassigned"}</p>
       </div>
 
       <div>

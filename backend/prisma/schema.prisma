@@ -17,48 +17,20 @@ enum UserRole {
   member
 }
 
-enum UserStatus {
-  pending
-  active
-  disabled
-}
-
 model User {
-  id        String     @id @default(uuid())
-  email     String     @unique
+  id        String   @id @default(uuid())
+  email     String   @unique
   name      String
   initials  String
-  role      UserRole   @default(member)
-  status    UserStatus @default(active)
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-
-  passwordHash    String?
-  inviteTokenHash String?   @unique
-  inviteExpiresAt DateTime?
-  invitedById     String?
-  invitedBy       User?     @relation("UserInvites", fields: [invitedById], references: [id])
-  invitees        User[]    @relation("UserInvites")
+  role      UserRole @default(member)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   ownedRedditMentions RedditMention[]
   resolvedAlerts      Alert[]
   updatedSettings     Setting[]
-  refreshTokens       RefreshToken[]
 
   @@map("users")
-}
-
-model RefreshToken {
-  id        String    @id @default(uuid())
-  userId    String
-  user      User      @relation(fields: [userId], references: [id])
-  tokenHash String    @unique
-  expiresAt DateTime
-  revokedAt DateTime?
-  createdAt DateTime  @default(now())
-
-  @@index([userId])
-  @@map("refresh_tokens")
 }
 
 model Setting {
