@@ -1,5 +1,5 @@
-import { WebsitePageContent } from "@/components/website/website-page-content";
+import { redirect } from "next/navigation";
 
 export default function WebsitePage() {
-  return <WebsitePageContent />;
+  redirect("/website/overview");
 }

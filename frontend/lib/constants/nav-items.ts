@@ -13,15 +13,32 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
+export type NavChildItem = {
+  label: string;
+  href: string;
+};
+
 export type NavItem = {
   label: string;
   href: string;
   icon: LucideIcon;
+  children?: NavChildItem[];
 };
 
 export const NAV_ITEMS: NavItem[] = [
   { label: "Dashboard", href: "/", icon: LayoutDashboard },
-  { label: "Website", href: "/website", icon: Globe },
+  {
+    label: "Website",
+    href: "/website",
+    icon: Globe,
+    children: [
+      { label: "Overview", href: "/website/overview" },
+      { label: "Metrics", href: "/website/metrics" },
+      { label: "Blog Activity", href: "/website/blog-activity" },
+      { label: "UTM/Campaigns", href: "/website/utm-campaigns" },
+      { label: "UTM Link Search", href: "/website/utm-link-search" },
+    ],
+  },
   { label: "SEO", href: "/seo", icon: TrendingUp },
   { label: "Search Console", href: "/search-console", icon: Search },
   { label: "Content", href: "/content", icon: FileText },
