@@ -56,7 +56,7 @@ export type SocialPostRecord = {
 /**
  * One social sync run writes two Prisma tables: Creator (upserted by unique
  * `handle`) and SocialPost (upserted by unique `url`, linked to its creator).
- * normalize() returns a single composite bundle, mirroring the Ahrefs pattern.
+ * normalize() returns a single composite bundle, mirroring the SEMrush pattern.
  */
 export type SocialNormalizedBundle = {
   creators: SocialCreatorRecord[];

@@ -20,7 +20,7 @@ envVarGroups:
     envVars:
       - key: NODE_ENV
         value: production
-      # Real integrations in prod. PostHog/GSC/Ahrefs/Twitter/Discord/Reddit each
+      # Real integrations in prod. PostHog/GSC/SEMrush/Twitter/Discord/Reddit each
       # fall back to fixture data automatically if their credentials are missing.
       - key: MOCK_MODE
         value: "false"
@@ -61,7 +61,7 @@ envVarGroups:
         sync: false
       - key: GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY
         sync: false
-      - key: AHREFS_API_TOKEN
+      - key: SEMRUSH_API_KEY
         sync: false
       - key: TWITTER_BEARER_TOKEN
         sync: false

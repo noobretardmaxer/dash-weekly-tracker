@@ -1,6 +1,6 @@
 # HydraDB Growth Dashboard — Backend
 
-Node.js + TypeScript + Express + Prisma/PostgreSQL backend that syncs metrics from PostHog, Google Search Console, Ahrefs, Twitter/X, Discord, and Reddit on a schedule, stores history, computes analytics/alerts/executive reports, and serves it all over a REST API.
+Node.js + TypeScript + Express + Prisma/PostgreSQL backend that syncs metrics from PostHog, Google Search Console, SEMrush, Twitter/X, Discord, and Reddit on a schedule, stores history, computes analytics/alerts/executive reports, and serves it all over a REST API.
 
 ## Architecture
 
@@ -15,7 +15,7 @@ src/
 prisma/           schema.prisma, migrations, seed.ts
 ```
 
-The frontend never talks to PostHog/GSC/Ahrefs/etc. directly — every external service has its own integration module, and the API only ever reads from Postgres (populated by scheduled syncs), never live-proxies a third-party call.
+The frontend never talks to PostHog/GSC/SEMrush/etc. directly — every external service has its own integration module, and the API only ever reads from Postgres (populated by scheduled syncs), never live-proxies a third-party call.
 
 ### Integration module pattern
 
@@ -34,7 +34,7 @@ Adding a new integration (GitHub, Hacker News, Product Hunt, LinkedIn, ...) mean
 
 `SCHEDULER_DRIVER=bullmq` (default) runs entirely self-hosted against Redis — works with zero external accounts. `SCHEDULER_DRIVER=trigger` uses Trigger.dev instead; set `TRIGGER_API_KEY` and deploy via `npx trigger.dev@latest deploy` to activate the cron schedules (Trigger.dev tasks run on Trigger.dev's infrastructure, not in the local worker process). Both implement the same `SchedulerPort` interface, so nothing else in the codebase branches on which one is active.
 
-Jobs: PostHog/Twitter/Discord/Reddit sync hourly, Google Search Console/Ahrefs (which also covers Keyword Rankings and Competitor Metrics in the same run) daily, Executive Report generation every Monday.
+Jobs: PostHog/Twitter/Discord/Reddit sync hourly, Google Search Console/SEMrush (which also covers Keyword Rankings and Competitor Metrics in the same run) daily, Executive Report generation every Monday.
 
 ## Running
 
@@ -65,7 +65,7 @@ Every integration defaults to mock mode automatically if its credentials aren't 
 |---|---|---|
 | **PostHog** | `POSTHOG_API_KEY`, `POSTHOG_PROJECT_ID`, `POSTHOG_HOST` | Personal API key (read scope) at Settings → Personal API Keys in your PostHog project. Uses the Query API (`/api/projects/:id/query/`). |
 | **Google Search Console** | `GSC_SITE_URL`, `GOOGLE_SERVICE_ACCOUNT_EMAIL`, `GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY` | Create a service account in Google Cloud Console, enable the Search Console API, add the service account email as a full user on the property in Search Console. Scope: `webmasters.readonly`. |
-| **Ahrefs** | `AHREFS_API_TOKEN`, `AHREFS_TARGET` | API v3 token from ahrefs.com/api/documentation — requires a paid Ahrefs subscription. |
+| **SEMrush** | `SEMRUSH_API_KEY`, `SEMRUSH_TARGET`, `SEMRUSH_DATABASE` | API key from semrush.com/api/ — requires a paid SEMrush subscription with the API add-on. `SEMRUSH_DATABASE` defaults to `us`. |
 | **Twitter / X** | `TWITTER_BEARER_TOKEN`, `TWITTER_USERNAME` | App-only bearer token from the X Developer Portal. Note: the standard API tier doesn't expose historical daily followers/profile-visits/engagement-rate (Enterprise-only) — the real client returns current-day snapshots for those fields, with `TWITTER_MOCK_MODE` as the fallback for full historical charts. |
 | **Discord** | `DISCORD_BOT_TOKEN`, `DISCORD_GUILD_ID` | Bot token from the Discord Developer Portal. Invite the bot with "Server Members Intent" enabled and View Channels / Read Message History permissions. Like Twitter, historical daily series aren't available from Discord's REST API — real-mode syncs capture current-day snapshots. |
 | **Reddit** | `REDDIT_CLIENT_ID`, `REDDIT_CLIENT_SECRET`, `REDDIT_USERNAME`, `REDDIT_PASSWORD`, `REDDIT_USER_AGENT` | Script-type OAuth2 app at reddit.com/prefs/apps. The keyword watchlist it monitors is stored in the `settings` table (`reddit.keywords`, seeded with HydraDB/GraphRAG/Knowledge Graph/Context Graph/Graph Database/AI Agent Memory) — edit via `PUT /api/v1/settings/reddit.keywords`. |

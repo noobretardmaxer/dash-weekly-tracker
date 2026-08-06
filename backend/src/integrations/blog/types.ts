@@ -3,7 +3,7 @@ export type BlogTopCategory = { name: string; value: number };
 /**
  * Shape produced by the fixture client (there is no real blog/CMS source yet;
  * content analytics normally comes from an internal CMS rather than any of the
- * PostHog/Ahrefs/etc. APIs). normalize() only ever sees this shape.
+ * PostHog/SEMrush/etc. APIs). normalize() only ever sees this shape.
  *
  * `capturedAt` is a per-run snapshot timestamp for the blog_posts leaderboard;
  * it is truncated to the day so re-running the sync within the same day upserts
@@ -63,7 +63,7 @@ export type BlogPostRecord = {
  * One blog sync run writes to two Prisma tables (BlogMetric — one row per day,
  * and BlogPost — the current top-posts snapshot), so normalize() returns an
  * array of this composite bundle (always a single element per run), mirroring
- * the Ahrefs integration's multi-table pattern.
+ * the SEMrush integration's multi-table pattern.
  */
 export type BlogNormalizedBundle = {
   metrics: BlogMetricRecord[];

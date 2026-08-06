@@ -5,7 +5,7 @@ import { sendData, sendPaginated } from "../utils/api-response";
 import { parseSort, resolveDateRange, resolvePreviousWindow } from "../utils/query-parser";
 import { keywordListQuerySchema, seoOverviewQuerySchema, type KeywordListQuery, type SeoOverviewQuery } from "../schemas/seo.schema";
 import { buildKpiMetric, type TimeSeriesPoint } from "../../services/analytics/growth";
-import type { SeoTopPage, KeywordMovement, CompetitorProfileRow } from "../../integrations/ahrefs/types";
+import type { SeoTopPage, KeywordMovement, CompetitorProfileRow } from "../../integrations/semrush/types";
 
 export const seoRouter = Router();
 

@@ -1,8 +1,8 @@
 import { faker } from "@faker-js/faker";
 import { generateTimeSeries, FIXTURE_SEEDS } from "../shared/fixtures/time-series";
 import type {
-  AhrefsClient,
-  AhrefsRawPayload,
+  SemrushClient,
+  SemrushRawPayload,
   CompetitorProfileRow,
   KeywordMovement,
   KeywordRankingRow,
@@ -12,8 +12,6 @@ import type {
 function latest(series: { date: string; value: number }[]): number {
   return series[series.length - 1]?.value ?? 0;
 }
-
-// --- ported from lib/mock-data/seo.ts ---
 
 const SEO_PAGE_PATHS = [
   "/product/graph-database",
@@ -43,8 +41,6 @@ const LOSING_KEYWORDS = [
   "vector search vs full text search",
   "open source vector database",
 ];
-
-// --- ported from lib/mock-data/keywords.ts ---
 
 const KEYWORD_TERMS = [
   "graph database",
@@ -112,8 +108,6 @@ const LANDING_PAGES = [
   "/customers",
 ];
 
-// --- ported from lib/constants/competitors.ts ---
-
 const BASE_COMPETITORS: { name: string; isHydraDB?: boolean }[] = [
   { name: "HydraDB", isHydraDB: true },
   { name: "Neo4j" },
@@ -134,21 +128,11 @@ const RELATIVE_STRENGTH: Record<string, number> = {
   FalkorDB: 0.3,
 };
 
-/**
- * Ported from lib/mock-data/seo.ts, lib/mock-data/keywords.ts, and
- * lib/constants/competitors.ts so MOCK_MODE output matches the dashboard's
- * original static demo data. Each source module called faker.seed() once
- * for its own section; since we're combining three modules into one
- * client, we reseed between sections to reproduce that same determinism.
- */
-export function createAhrefsMockClient(): AhrefsClient {
-  async function authenticate(): Promise<void> {
-    // no-op in mock mode
-  }
+export function createSemrushMockClient(): SemrushClient {
+  async function authenticate(): Promise<void> {}
 
-  async function fetch(): Promise<AhrefsRawPayload> {
-    // --- lib/mock-data/seo.ts (faker.seed(SEEDS.seo) -> FIXTURE_SEEDS.ahrefs) ---
-    faker.seed(FIXTURE_SEEDS.ahrefs);
+  async function fetch(): Promise<SemrushRawPayload> {
+    faker.seed(FIXTURE_SEEDS.semrush);
 
     const organicTrafficSeries = generateTimeSeries({
       baseValue: 1450,
@@ -188,7 +172,6 @@ export function createAhrefsMockClient(): AhrefsClient {
       return { keyword, positionChange, currentPosition };
     }).sort((a, b) => a.positionChange - b.positionChange);
 
-    // --- lib/mock-data/keywords.ts (faker.seed(SEEDS.keywords) -> FIXTURE_SEEDS.keywords) ---
     faker.seed(FIXTURE_SEEDS.keywords);
 
     const keywordRankings: KeywordRankingRow[] = KEYWORD_TERMS.map((keyword) => {
@@ -210,10 +193,6 @@ export function createAhrefsMockClient(): AhrefsClient {
       };
     }).sort((a, b) => a.currentPosition - b.currentPosition);
 
-    // --- lib/constants/competitors.ts (faker.seed(1010) is hardcoded in the
-    // source module rather than drawn from FIXTURE_SEEDS; reproduced verbatim
-    // here, including generating a jitter value for HydraDB before filtering
-    // it out, to keep the faker call sequence identical to the source) ---
     faker.seed(1010);
 
     const competitorProfiles: CompetitorProfileRow[] = BASE_COMPETITORS.map((c) => {
@@ -225,10 +204,6 @@ export function createAhrefsMockClient(): AhrefsClient {
         domainRating: Math.round(30 + strength * 55 * jitter),
         backlinks: Math.round(3000 + strength * 180_000 * jitter),
         organicTraffic: Math.round(1200 + strength * 220_000 * jitter),
-        // Ahrefs' CompetitorMetric table also tracks organic keyword count,
-        // which lib/constants/competitors.ts doesn't produce (it only feeds
-        // a domain-rating/backlinks/traffic comparison chart) -- estimated
-        // proportionally to relative strength using the same jitter.
         organicKeywords: Math.round(500 + strength * 18_000 * jitter),
       };
     })

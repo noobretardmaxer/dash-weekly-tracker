@@ -2,7 +2,7 @@ import { prisma } from "../db/prisma-client";
 import { runIntegration } from "../integrations/shared/run-integration";
 import { createPostHogIntegration } from "../integrations/posthog";
 import { createGscIntegration } from "../integrations/gsc";
-import { createAhrefsIntegration } from "../integrations/ahrefs";
+import { createSemrushIntegration } from "../integrations/semrush";
 import { createTwitterIntegration } from "../integrations/twitter";
 import { createDiscordIntegration } from "../integrations/discord";
 import { createRedditIntegration } from "../integrations/reddit";
@@ -24,7 +24,7 @@ const WEEKLY_MONDAY_CRON = "0 6 * * 1";
  *
  * - `rangeDays`    — the incremental window each cron tick pulls.
  * - `backfillDays` — the larger historical window used on startup / manual full
- *   sync. Twitter/Discord/Ahrefs only ever return a current-day snapshot from
+ *   sync. Twitter/Discord/SEMrush only ever return a current-day snapshot from
  *   their real APIs, so a larger window gains nothing there and matches rangeDays.
  */
 export type IntegrationJobSpec = {
@@ -42,10 +42,7 @@ export const INTEGRATION_JOBS: IntegrationJobSpec[] = [
   { key: "discord", name: "discord-sync", cronExpr: HOURLY_CRON, createModule: createDiscordIntegration, rangeDays: 2, backfillDays: 2 },
   { key: "reddit", name: "reddit-sync", cronExpr: HOURLY_CRON, createModule: createRedditIntegration, rangeDays: 2, backfillDays: 7 },
   { key: "gsc", name: "gsc-sync", cronExpr: DAILY_CRON, createModule: createGscIntegration, rangeDays: 7, backfillDays: 90 },
-  // One Ahrefs sync covers the spec's "Ahrefs" + "Keyword Rankings" daily jobs in a single
-  // run, since the Ahrefs integration writes seo_metrics, keyword_rankings, and
-  // competitor_metrics together (see integrations/ahrefs/store.ts).
-  { key: "ahrefs", name: "ahrefs-sync", cronExpr: DAILY_CRON, createModule: createAhrefsIntegration, rangeDays: 1, backfillDays: 1 },
+  { key: "semrush", name: "semrush-sync", cronExpr: DAILY_CRON, createModule: createSemrushIntegration, rangeDays: 1, backfillDays: 1 },
   // Blog + Social have no real third-party source yet (fixture data); they still
   // run as first-class daily jobs so the Content and Social Leaderboard panels
   // populate in production. Larger backfill windows seed the full history.
