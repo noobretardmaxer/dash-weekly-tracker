@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { ChartCard } from "@/components/primitives/chart-card";
 import { ChartCardSkeleton } from "@/components/primitives/skeletons/chart-card-skeleton";
-import { ErrorState } from "@/components/primitives/error-state";
 import { AppLineChart } from "@/components/charts/line-chart";
 import { AppAreaChart } from "@/components/charts/area-chart";
 import { useDateRange } from "@/lib/hooks/use-date-range";
@@ -12,7 +11,7 @@ import { formatCompactNumber } from "@/lib/utils/format";
 
 export function DashboardPreviewCharts() {
   const { days } = useDateRange();
-  const { data, isLoading, isError, refetch } = useDashboardOverview({ days });
+  const { data, isLoading, isError } = useDashboardOverview({ days });
 
   return (
     <div>
@@ -30,7 +29,9 @@ export function DashboardPreviewCharts() {
           <ChartCardSkeleton height={200} />
         </div>
       ) : isError || !data ? (
-        <ErrorState onRetry={() => refetch()} />
+        <div className="flex items-center justify-center rounded-lg border border-dashed border-border py-16 text-sm text-muted-foreground">
+          Need to fetch data
+        </div>
       ) : (
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
           <ChartCard title="Website Visitors" height={200} dialogHeight={400}>

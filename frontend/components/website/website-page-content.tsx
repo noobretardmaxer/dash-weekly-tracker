@@ -6,7 +6,6 @@ import { SyncStatusBanner } from "@/components/primitives/sync-status-banner";
 import { ChartCard } from "@/components/primitives/chart-card";
 import { KpiCard } from "@/components/primitives/kpi-card";
 import { DataTable } from "@/components/primitives/data-table";
-import { ErrorState } from "@/components/primitives/error-state";
 import { KpiCardSkeleton } from "@/components/primitives/skeletons/kpi-card-skeleton";
 import { ChartCardSkeleton } from "@/components/primitives/skeletons/chart-card-skeleton";
 import { TableSkeleton } from "@/components/primitives/skeletons/table-skeleton";
@@ -35,7 +34,7 @@ const exitColumns: ColumnDef<ExitPageRow, unknown>[] = [
 
 export function WebsitePageContent() {
   const { days } = useDateRange();
-  const { data, isLoading, isError, refetch } = useWebsiteOverview({ days });
+  const { data, isLoading, isError } = useWebsiteOverview({ days });
 
   if (isLoading) {
     return (
@@ -62,7 +61,9 @@ export function WebsitePageContent() {
     return (
       <div className="space-y-6">
         <SectionHeader title="Website Analytics" description="Traffic, engagement, and conversion across the marketing site." />
-        <ErrorState onRetry={() => refetch()} />
+        <div className="flex items-center justify-center rounded-lg border border-dashed border-border py-16 text-sm text-muted-foreground">
+          Need to fetch data
+        </div>
       </div>
     );
   }

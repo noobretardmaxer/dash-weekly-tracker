@@ -4,7 +4,6 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { ChartCard } from "@/components/primitives/chart-card";
 import { KpiCard } from "@/components/primitives/kpi-card";
 import { DataTable } from "@/components/primitives/data-table";
-import { ErrorState } from "@/components/primitives/error-state";
 import { KpiCardSkeleton } from "@/components/primitives/skeletons/kpi-card-skeleton";
 import { ChartCardSkeleton } from "@/components/primitives/skeletons/chart-card-skeleton";
 import { TableSkeleton } from "@/components/primitives/skeletons/table-skeleton";
@@ -33,12 +32,11 @@ const topKeywordsColumns: ColumnDef<KeywordRankingRow, unknown>[] = [
 
 export function SeoOverview() {
   const { days } = useDateRange();
-  const { data, isLoading, isError, refetch } = useSeoOverview({ days });
+  const { data, isLoading, isError } = useSeoOverview({ days });
   const {
     data: topKeywords,
     isLoading: isTopKeywordsLoading,
     isError: isTopKeywordsError,
-    refetch: refetchTopKeywords,
   } = useKeywordRankings({ sort: "clicks:desc", pageSize: 15 });
 
   if (isLoading) {
@@ -70,7 +68,9 @@ export function SeoOverview() {
   if (isError || !data) {
     return (
       <div className="space-y-6">
-        <ErrorState onRetry={() => refetch()} />
+        <div className="flex items-center justify-center rounded-lg border border-dashed border-border py-16 text-sm text-muted-foreground">
+          Need to fetch data
+        </div>
       </div>
     );
   }
@@ -167,7 +167,9 @@ export function SeoOverview() {
           {isTopKeywordsLoading ? (
             <TableSkeleton />
           ) : isTopKeywordsError || !topKeywords ? (
-            <ErrorState onRetry={() => refetchTopKeywords()} />
+            <div className="flex items-center justify-center rounded-lg border border-dashed border-border py-16 text-sm text-muted-foreground">
+              Need to fetch data
+            </div>
           ) : (
             <DataTable
               columns={topKeywordsColumns}

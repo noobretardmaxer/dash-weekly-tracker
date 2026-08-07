@@ -10,10 +10,8 @@ const PER_INTEGRATION_OVERRIDE: Record<IntegrationKey, boolean | undefined> = {
   twitter: env.TWITTER_MOCK_MODE,
   discord: env.DISCORD_MOCK_MODE,
   reddit: env.REDDIT_MOCK_MODE,
-  // No real source exists for these yet — they always produce fixture data (their
-  // index.ts uses the fixture client directly and never consults isMockMode).
-  blog: true,
-  social: true,
+  blog: env.MOCK_MODE ? true : false,
+  social: env.MOCK_MODE ? true : false,
 };
 
 const HAS_CREDENTIALS: Record<IntegrationKey, () => boolean> = {
@@ -38,13 +36,11 @@ export function isMockMode(integration: IntegrationKey): boolean {
   if (override !== undefined) return override;
 
   if (!HAS_CREDENTIALS[integration]()) {
-    if (!env.MOCK_MODE) {
-      logger.warn(
-        { integration },
-        "MOCK_MODE=false but required credentials are missing; falling back to mock mode for this integration"
-      );
-    }
-    return true;
+    logger.warn(
+      { integration },
+      "MOCK_MODE=false and required credentials are missing; integration will return no data"
+    );
+    return false;
   }
 
   return env.MOCK_MODE;

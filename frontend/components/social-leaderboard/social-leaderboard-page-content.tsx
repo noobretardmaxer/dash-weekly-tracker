@@ -5,7 +5,6 @@ import { SectionHeader } from "@/components/primitives/section-header";
 import { SyncStatusBanner } from "@/components/primitives/sync-status-banner";
 import { KpiCard } from "@/components/primitives/kpi-card";
 import { DataTable } from "@/components/primitives/data-table";
-import { ErrorState } from "@/components/primitives/error-state";
 import { KpiCardSkeleton } from "@/components/primitives/skeletons/kpi-card-skeleton";
 import { TableSkeleton } from "@/components/primitives/skeletons/table-skeleton";
 import { buildContentFeedColumns } from "@/components/social-leaderboard/content-feed-columns";
@@ -47,13 +46,9 @@ export function SocialLeaderboardPageContent() {
     return (
       <div className="space-y-6">
         <SectionHeader title="Social Leaderboard" description="What content is going out, and who's driving the most traction." />
-        <ErrorState
-          onRetry={() => {
-            overview.refetch();
-            posts.refetch();
-            leaderboard.refetch();
-          }}
-        />
+        <div className="flex items-center justify-center rounded-lg border border-dashed border-border py-16 text-sm text-muted-foreground">
+          Need to fetch data
+        </div>
       </div>
     );
   }

@@ -2,13 +2,12 @@
 
 import { KpiCard } from "@/components/primitives/kpi-card";
 import { KpiCardSkeleton } from "@/components/primitives/skeletons/kpi-card-skeleton";
-import { ErrorState } from "@/components/primitives/error-state";
 import { useDateRange } from "@/lib/hooks/use-date-range";
 import { useDashboardOverview } from "@/lib/hooks/queries/use-dashboard-overview";
 
 export function ExecutiveKpiGrid() {
   const { days } = useDateRange();
-  const { data, isLoading, isError, refetch } = useDashboardOverview({ days });
+  const { data, isLoading, isError } = useDashboardOverview({ days });
 
   if (isLoading) {
     return (
@@ -21,7 +20,11 @@ export function ExecutiveKpiGrid() {
   }
 
   if (isError || !data) {
-    return <ErrorState onRetry={() => refetch()} />;
+    return (
+      <div className="flex items-center justify-center rounded-lg border border-dashed border-border py-16 text-sm text-muted-foreground">
+        Need to fetch data
+      </div>
+    );
   }
 
   return (
