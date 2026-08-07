@@ -33,9 +33,11 @@ type SearchAnalyticsResponse = {
 export function createGscClient(): GscClient {
   const http = createHttpClient("https://www.googleapis.com");
 
+  const privateKey = env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY?.replace(/\\n/g, "\n");
+
   const jwtClient = new JWT({
     email: env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-    key: env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY,
+    key: privateKey,
     scopes: ["https://www.googleapis.com/auth/webmasters.readonly"],
   });
 
