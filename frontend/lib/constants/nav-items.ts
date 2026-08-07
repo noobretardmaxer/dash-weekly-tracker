@@ -1,9 +1,7 @@
 import {
-  LayoutDashboard,
   Globe,
   TrendingUp,
   Search,
-  FileText,
   AtSign,
   MessagesSquare,
   Radar,
@@ -23,10 +21,10 @@ export type NavItem = {
   href: string;
   icon: LucideIcon;
   children?: NavChildItem[];
+  locked?: boolean;
 };
 
 export const NAV_ITEMS: NavItem[] = [
-  { label: "Dashboard", href: "/", icon: LayoutDashboard },
   {
     label: "Website",
     href: "/website",
@@ -41,11 +39,10 @@ export const NAV_ITEMS: NavItem[] = [
   },
   { label: "SEO", href: "/seo", icon: TrendingUp },
   { label: "Search Console", href: "/search-console", icon: Search },
-  { label: "Content", href: "/content", icon: FileText },
-  { label: "Twitter/X", href: "/twitter", icon: AtSign },
-  { label: "Discord", href: "/discord", icon: MessagesSquare },
-  { label: "Reddit Intelligence", href: "/reddit", icon: Radar },
+  { label: "Twitter/X", href: "/twitter", icon: AtSign, locked: true },
+  { label: "Discord", href: "/discord", icon: MessagesSquare, locked: true },
+  { label: "Reddit Intelligence", href: "/reddit", icon: Radar, locked: true },
   { label: "Social Leaderboard", href: "/social-leaderboard", icon: Trophy },
-  { label: "Reports", href: "/reports", icon: FileBarChart },
+  { label: "Reports", href: "/reports", icon: FileBarChart, locked: true },
   { label: "Settings", href: "/settings", icon: Settings },
 ];
