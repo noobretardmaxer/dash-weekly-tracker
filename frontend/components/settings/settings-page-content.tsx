@@ -2,21 +2,14 @@
 
 import { useRef, useState } from "react";
 import { SectionHeader } from "@/components/primitives/section-header";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
-import { InviteMemberDialog } from "@/components/settings/invite-member-dialog";
 import { useUiSimulation } from "@/lib/hooks/use-ui-simulation";
-import { useCurrentUser } from "@/lib/hooks/queries/use-current-user";
 import { useSettings } from "@/lib/hooks/queries/use-settings";
-import { useUsers } from "@/lib/hooks/queries/use-users";
 import { useUpdateWorkspaceSetting } from "@/lib/hooks/mutations/use-update-workspace-setting";
-import { useUpdateUserRole } from "@/lib/hooks/mutations/use-update-user-role";
 
 const NOTIFICATION_PREFS = [
   { id: "weekly-digest", label: "Weekly executive digest", description: "A summary of growth metrics every Monday." },
@@ -27,11 +20,8 @@ const NOTIFICATION_PREFS = [
 
 export function SettingsPageContent() {
   const { simulateError, setSimulateError, simulateOffline, setSimulateOffline } = useUiSimulation();
-  const { data: currentUser } = useCurrentUser();
   const { data: settings } = useSettings();
-  const { data: users } = useUsers();
   const updateWorkspaceSetting = useUpdateWorkspaceSetting();
-  const updateUserRole = useUpdateUserRole();
   const [prefs, setPrefs] = useState<Record<string, boolean>>({
     "weekly-digest": true,
     "keyword-alerts": true,
@@ -39,106 +29,30 @@ export function SettingsPageContent() {
     "backlink-alerts": false,
   });
 
-  const isAdmin = currentUser?.role === "admin";
   const workspaceName = typeof settings?.["workspace.name"] === "string" ? (settings["workspace.name"] as string) : "";
   const workspaceNameInputRef = useRef<HTMLInputElement>(null);
 
   return (
     <div className="max-w-2xl space-y-6">
-      <SectionHeader title="Settings" description="Manage your profile, notifications, and preview tools." />
-
-      <div className="rounded-xl border border-border bg-card p-5">
-        <h3 className="text-sm font-medium">Profile</h3>
-        <div className="mt-4 flex items-center gap-4">
-          <Avatar className="size-14">
-            <AvatarFallback className="text-lg">{currentUser?.initials ?? ""}</AvatarFallback>
-          </Avatar>
-          {currentUser && (
-            <div>
-              <p className="text-sm font-medium">{currentUser.name}</p>
-              <p className="text-xs text-muted-foreground">{currentUser.role}</p>
-            </div>
-          )}
-        </div>
-        <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div className="space-y-1.5">
-            <Label htmlFor="name">Name</Label>
-            <Input id="name" defaultValue={currentUser?.name ?? ""} key={currentUser?.name} />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="email">Email</Label>
-            <Input id="email" defaultValue={currentUser?.email ?? ""} key={currentUser?.email} />
-          </div>
-        </div>
-        <Button size="sm" className="mt-4">
-          Save changes
-        </Button>
-      </div>
+      <SectionHeader title="Settings" description="Manage your workspace, notifications, and preview tools." />
 
       <div className="rounded-xl border border-border bg-card p-5">
         <h3 className="text-sm font-medium">Workspace</h3>
         <div className="mt-4 max-w-sm space-y-1.5">
           <Label htmlFor="workspace-name">Workspace name</Label>
-          {isAdmin ? (
-            <Input id="workspace-name" ref={workspaceNameInputRef} defaultValue={workspaceName} key={workspaceName} />
-          ) : (
-            <p className="text-sm">{workspaceName}</p>
-          )}
+          <Input id="workspace-name" ref={workspaceNameInputRef} defaultValue={workspaceName} key={workspaceName} />
         </div>
-        {isAdmin && (
-          <Button
-            size="sm"
-            className="mt-4"
-            disabled={updateWorkspaceSetting.isPending}
-            onClick={() => {
-              const value = workspaceNameInputRef.current?.value;
-              if (value) updateWorkspaceSetting.mutate(value);
-            }}
-          >
-            Save changes
-          </Button>
-        )}
-      </div>
-
-      <div className="rounded-xl border border-border bg-card p-5">
-        <div className="flex items-center justify-between">
-          <h3 className="text-sm font-medium">Members</h3>
-          {isAdmin && <InviteMemberDialog />}
-        </div>
-        <div className="mt-4 space-y-3">
-          {users?.map((user) => (
-            <div key={user.id} className="flex items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <Avatar className="size-8">
-                  <AvatarFallback className="text-xs">{user.initials}</AvatarFallback>
-                </Avatar>
-                <div>
-                  <p className="text-sm font-medium">{user.name}</p>
-                  <p className="text-xs text-muted-foreground">{user.email}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                {user.status === "pending" && <Badge variant="outline">Pending</Badge>}
-                {isAdmin ? (
-                  <Select
-                    value={user.role}
-                    onValueChange={(role) => updateUserRole.mutate({ id: user.id, role: role as "admin" | "member" })}
-                  >
-                    <SelectTrigger size="sm">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="member">Member</SelectItem>
-                      <SelectItem value="admin">Admin</SelectItem>
-                    </SelectContent>
-                  </Select>
-                ) : (
-                  <Badge variant="secondary">{user.role}</Badge>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
+        <Button
+          size="sm"
+          className="mt-4"
+          disabled={updateWorkspaceSetting.isPending}
+          onClick={() => {
+            const value = workspaceNameInputRef.current?.value;
+            if (value) updateWorkspaceSetting.mutate(value);
+          }}
+        >
+          Save changes
+        </Button>
       </div>
 
       <div className="rounded-xl border border-border bg-card p-5">

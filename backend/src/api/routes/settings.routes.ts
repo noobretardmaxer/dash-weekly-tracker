@@ -1,7 +1,6 @@
 import { Router } from "express";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "../../db/prisma-client";
-import { requireRole } from "../middleware/auth";
 import { validateBody } from "../middleware/validate";
 import { sendData } from "../utils/api-response";
 import { upsertSettingBodySchema, type UpsertSettingBody } from "../schemas/settings.schema";
@@ -18,7 +17,7 @@ settingsRouter.get("/", async (_req, res, next) => {
   }
 });
 
-settingsRouter.put("/:key", requireRole("admin"), validateBody(upsertSettingBodySchema), async (req, res, next) => {
+settingsRouter.put("/:key", validateBody(upsertSettingBodySchema), async (req, res, next) => {
   try {
     const body = req.body as UpsertSettingBody;
     const value = body.value as Prisma.InputJsonValue;

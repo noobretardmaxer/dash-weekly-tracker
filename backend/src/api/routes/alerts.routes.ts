@@ -46,7 +46,7 @@ alertsRouter.patch("/:id", validateBody(updateAlertStatusBodySchema), async (req
     const data: Prisma.AlertUpdateInput = {
       status: body.status,
       ...(body.status === "resolved"
-        ? { resolvedAt: new Date(), resolvedBy: { connect: { id: req.user!.id } } }
+        ? { resolvedAt: new Date() }
         : {}),
     };
 
