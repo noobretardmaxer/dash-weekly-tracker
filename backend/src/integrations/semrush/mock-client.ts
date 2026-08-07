@@ -7,6 +7,10 @@ import type {
   KeywordMovement,
   KeywordRankingRow,
   SeoTopPage,
+  RefDomainRow,
+  AnchorRow,
+  TldRow,
+  AuthorityBucket,
 } from "./types";
 
 function latest(series: { date: string; value: number }[]): number {
@@ -210,6 +214,43 @@ export function createSemrushMockClient(): SemrushClient {
       .filter((c) => !c.isHydraDB)
       .map(({ isHydraDB: _isHydraDB, ...rest }) => rest);
 
+    const MOCK_REF_DOMAINS = [
+      "github.com", "stackoverflow.com", "dev.to", "medium.com", "reddit.com",
+      "hackernews.com", "twitter.com", "linkedin.com", "producthunt.com", "dzone.com",
+      "infoq.com", "techcrunch.com", "thenewstack.io", "arxiv.org", "towardsdatascience.com",
+    ];
+
+    const topRefDomains: RefDomainRow[] = MOCK_REF_DOMAINS.map((domain) => ({
+      domain,
+      authorityScore: faker.number.int({ min: 5, max: 95 }),
+      backlinksCount: faker.number.int({ min: 1, max: 45 }),
+    })).sort((a, b) => b.authorityScore - a.authorityScore);
+
+    const refDomainsByAuthority: AuthorityBucket[] = [
+      { range: "0-20", count: faker.number.int({ min: 280, max: 420 }) },
+      { range: "21-40", count: faker.number.int({ min: 20, max: 50 }) },
+      { range: "41-60", count: faker.number.int({ min: 5, max: 18 }) },
+      { range: "61-80", count: faker.number.int({ min: 0, max: 4 }) },
+      { range: "81-100", count: faker.number.int({ min: 0, max: 2 }) },
+    ];
+
+    const topAnchors: AnchorRow[] = [
+      "hydradb", "hydra database", "graph database", "vector search", "hydradb.com",
+      "graphrag database", "hybrid search", "knowledge graph", "ai database", "hydra",
+    ].map((anchor) => ({
+      anchor,
+      backlinksCount: faker.number.int({ min: 3, max: 180 }),
+      domainsCount: faker.number.int({ min: 1, max: 40 }),
+    })).sort((a, b) => b.backlinksCount - a.backlinksCount);
+
+    const topTlds: TldRow[] = [
+      ".com", ".io", ".org", ".dev", ".net", ".co", ".ai", ".tech", ".xyz", ".me",
+    ].map((tld) => ({
+      tld,
+      backlinksCount: faker.number.int({ min: 5, max: 1200 }),
+      domainsCount: faker.number.int({ min: 2, max: 250 }),
+    })).sort((a, b) => b.backlinksCount - a.backlinksCount);
+
     return {
       organicTraffic: latest(organicTrafficSeries),
       organicKeywords: latest(organicKeywordsSeries),
@@ -223,6 +264,10 @@ export function createSemrushMockClient(): SemrushClient {
       losingKeywords,
       keywordRankings,
       competitorProfiles,
+      refDomainsByAuthority,
+      topRefDomains,
+      topAnchors,
+      topTlds,
     };
   }
 

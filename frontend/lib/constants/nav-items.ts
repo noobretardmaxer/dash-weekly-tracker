@@ -37,7 +37,17 @@ export const NAV_ITEMS: NavItem[] = [
       { label: "UTM Link Search", href: "/website/utm-link-search" },
     ],
   },
-  { label: "SEO", href: "/seo", icon: TrendingUp },
+  {
+    label: "SEO",
+    href: "/seo",
+    icon: TrendingUp,
+    children: [
+      { label: "Overview", href: "/seo/overview" },
+      { label: "Keywords", href: "/seo/keywords" },
+      { label: "Backlinks", href: "/seo/backlinks" },
+      { label: "Competitors", href: "/seo/competitors" },
+    ],
+  },
   { label: "Search Console", href: "/search-console", icon: Search },
   { label: "Twitter/X", href: "/twitter", icon: AtSign, locked: true },
   { label: "Discord", href: "/discord", icon: MessagesSquare, locked: true },

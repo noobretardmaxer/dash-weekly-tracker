@@ -21,6 +21,11 @@ export type CompetitorProfileRow = {
   backlinks: number;
 };
 
+export type RefDomainRow = { domain: string; authorityScore: number; backlinksCount: number };
+export type AnchorRow = { anchor: string; backlinksCount: number; domainsCount: number };
+export type TldRow = { tld: string; backlinksCount: number; domainsCount: number };
+export type AuthorityBucket = { range: string; count: number };
+
 export type SemrushRawPayload = {
   organicTraffic: number;
   organicKeywords: number;
@@ -34,6 +39,10 @@ export type SemrushRawPayload = {
   losingKeywords: KeywordMovement[];
   keywordRankings: KeywordRankingRow[];
   competitorProfiles: CompetitorProfileRow[];
+  refDomainsByAuthority: AuthorityBucket[];
+  topRefDomains: RefDomainRow[];
+  topAnchors: AnchorRow[];
+  topTlds: TldRow[];
 };
 
 export interface SemrushClient {
@@ -53,6 +62,10 @@ export type SeoMetricRecord = {
   topPages: SeoTopPage[];
   fastestGrowingKeywords: KeywordMovement[];
   losingKeywords: KeywordMovement[];
+  refDomainsByAuthority: AuthorityBucket[];
+  topRefDomains: RefDomainRow[];
+  topAnchors: AnchorRow[];
+  topTlds: TldRow[];
   source: "semrush" | "mock";
 };
 

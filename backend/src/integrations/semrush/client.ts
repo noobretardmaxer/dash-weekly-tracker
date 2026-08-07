@@ -8,6 +8,10 @@ import type {
   KeywordMovement,
   KeywordRankingRow,
   SeoTopPage,
+  RefDomainRow,
+  AnchorRow,
+  TldRow,
+  AuthorityBucket,
 } from "./types";
 
 const COMPETITOR_DOMAINS: { name: string; domain: string }[] = [
@@ -111,6 +115,85 @@ export function createSemrushClient(): SemrushClient {
     };
   }
 
+  async function fetchBacklinksRefdomains(domain: string): Promise<RefDomainRow[]> {
+    const res = await http.get<string>("/analytics/v1/", {
+      params: {
+        type: "backlinks_refdomains",
+        key: apiKey,
+        target: domain,
+        target_type: "root_domain",
+        export_columns: "domain_ascore,backlinks_num,domain",
+        display_limit: 500,
+        display_sort: "domain_ascore_desc",
+      },
+      responseType: "text",
+    });
+    return parseCsv(res.data).map((r) => ({
+      domain: r["domain"] ?? "",
+      authorityScore: num(r["domain_ascore"]),
+      backlinksCount: num(r["backlinks_num"]),
+    }));
+  }
+
+  async function fetchBacklinksAnchors(domain: string): Promise<AnchorRow[]> {
+    const res = await http.get<string>("/analytics/v1/", {
+      params: {
+        type: "backlinks_anchors",
+        key: apiKey,
+        target: domain,
+        target_type: "root_domain",
+        export_columns: "anchor,backlinks_num,domains_num",
+        display_limit: 20,
+        display_sort: "backlinks_num_desc",
+      },
+      responseType: "text",
+    });
+    return parseCsv(res.data).map((r) => ({
+      anchor: r["anchor"] ?? "",
+      backlinksCount: num(r["backlinks_num"]),
+      domainsCount: num(r["domains_num"]),
+    }));
+  }
+
+  async function fetchBacklinksTld(domain: string): Promise<TldRow[]> {
+    const res = await http.get<string>("/analytics/v1/", {
+      params: {
+        type: "backlinks_tld",
+        key: apiKey,
+        target: domain,
+        target_type: "root_domain",
+        export_columns: "zone,domains_num,backlinks_num",
+        display_limit: 20,
+        display_sort: "backlinks_num_desc",
+      },
+      responseType: "text",
+    });
+    return parseCsv(res.data).map((r) => ({
+      tld: r["zone"] ?? "",
+      backlinksCount: num(r["backlinks_num"]),
+      domainsCount: num(r["domains_num"]),
+    }));
+  }
+
+  function bucketByAuthority(refDomains: RefDomainRow[]): AuthorityBucket[] {
+    const buckets = [
+      { range: "0-20", count: 0 },
+      { range: "21-40", count: 0 },
+      { range: "41-60", count: 0 },
+      { range: "61-80", count: 0 },
+      { range: "81-100", count: 0 },
+    ];
+    for (const rd of refDomains) {
+      const score = rd.authorityScore;
+      if (score <= 20) buckets[0].count++;
+      else if (score <= 40) buckets[1].count++;
+      else if (score <= 60) buckets[2].count++;
+      else if (score <= 80) buckets[3].count++;
+      else buckets[4].count++;
+    }
+    return buckets;
+  }
+
   async function fetchCompetitorProfiles(): Promise<CompetitorProfileRow[]> {
     return Promise.all(
       COMPETITOR_DOMAINS.map(async ({ name, domain }) => {
@@ -131,7 +214,7 @@ export function createSemrushClient(): SemrushClient {
 
   async function fetch(_range: { from: Date; to: Date }): Promise<SemrushRawPayload> {
     try {
-      const [overview, backlinks, organicRes] = await Promise.all([
+      const [overview, backlinks, organicRes, refDomains, anchors, tlds] = await Promise.all([
         fetchDomainOverview(target),
         fetchBacklinksOverview(target),
         http.get<string>("/", {
@@ -146,6 +229,9 @@ export function createSemrushClient(): SemrushClient {
           },
           responseType: "text",
         }),
+        fetchBacklinksRefdomains(target),
+        fetchBacklinksAnchors(target),
+        fetchBacklinksTld(target),
       ]);
 
       const organicRows = parseCsv(organicRes.data);
@@ -215,6 +301,10 @@ export function createSemrushClient(): SemrushClient {
         losingKeywords,
         keywordRankings,
         competitorProfiles,
+        refDomainsByAuthority: bucketByAuthority(refDomains),
+        topRefDomains: refDomains.slice(0, 50),
+        topAnchors: anchors,
+        topTlds: tlds,
       };
     } catch (error) {
       throw new IntegrationFetchError("semrush", (error as Error).message);

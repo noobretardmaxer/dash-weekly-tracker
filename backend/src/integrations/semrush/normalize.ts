@@ -29,6 +29,10 @@ export async function normalize(
     topPages: raw.seoTopPages,
     fastestGrowingKeywords: raw.fastestGrowingKeywords,
     losingKeywords: raw.losingKeywords,
+    refDomainsByAuthority: raw.refDomainsByAuthority,
+    topRefDomains: raw.topRefDomains,
+    topAnchors: raw.topAnchors,
+    topTlds: raw.topTlds,
     source,
   };
 
