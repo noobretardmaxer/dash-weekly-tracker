@@ -5,7 +5,7 @@ import { sendData, sendPaginated } from "../utils/api-response";
 import { parseSort, resolveDateRange, resolvePreviousWindow } from "../utils/query-parser";
 import { keywordListQuerySchema, seoOverviewQuerySchema, type KeywordListQuery, type SeoOverviewQuery } from "../schemas/seo.schema";
 import { buildKpiMetric, type TimeSeriesPoint } from "../../services/analytics/growth";
-import type { SeoTopPage, KeywordMovement, CompetitorProfileRow } from "../../integrations/semrush/types";
+import type { SeoTopPage, KeywordMovement, CompetitorProfileRow, AuthorityBucket, RefDomainRow, AnchorRow, TldRow } from "../../integrations/semrush/types";
 
 export const seoRouter = Router();
 
@@ -191,6 +191,88 @@ seoRouter.get("/competitors", async (_req, res, next) => {
     });
 
     sendData(res, rows);
+  } catch (error) {
+    next(error);
+  }
+});
+
+seoRouter.get("/backlinks", validateQuery(seoOverviewQuerySchema), async (req, res, next) => {
+  try {
+    const query = req.parsedQuery as SeoOverviewQuery;
+    const current = resolveDateRange(query);
+    const previous = resolvePreviousWindow(current, query.compare) ?? {
+      from: new Date(current.from.getTime() - (current.to.getTime() - current.from.getTime())),
+      to: current.from,
+    };
+
+    const rows = await prisma.seoMetric.findMany({
+      where: { date: { gte: previous.from, lte: current.to } },
+      orderBy: { date: "asc" },
+    });
+
+    const backlinksFull = toSeries(rows, "backlinks");
+    const referringDomainsFull = toSeries(rows, "referringDomains");
+    const newBacklinksFull = toSeries(rows, "newBacklinks");
+    const lostBacklinksFull = toSeries(rows, "lostBacklinks");
+
+    const latest = rows[rows.length - 1];
+
+    const response = {
+      kpis: {
+        backlinks: buildKpiMetric({
+          id: "backlinks",
+          label: "Backlinks",
+          format: "compact",
+          current: inWindow(backlinksFull, current),
+          previous: inWindow(backlinksFull, previous),
+          aggregate: "last",
+          positiveIsGood: true,
+        }),
+        referringDomains: buildKpiMetric({
+          id: "referring-domains",
+          label: "Referring Domains",
+          format: "compact",
+          current: inWindow(referringDomainsFull, current),
+          previous: inWindow(referringDomainsFull, previous),
+          aggregate: "last",
+          positiveIsGood: true,
+        }),
+        newBacklinks: buildKpiMetric({
+          id: "new-backlinks",
+          label: "New Backlinks (7d)",
+          format: "number",
+          current: inWindow(newBacklinksFull, current),
+          previous: inWindow(newBacklinksFull, previous),
+          aggregate: "sum",
+          positiveIsGood: true,
+        }),
+        lostBacklinks: buildKpiMetric({
+          id: "lost-backlinks",
+          label: "Lost Backlinks (7d)",
+          format: "number",
+          current: inWindow(lostBacklinksFull, current),
+          previous: inWindow(lostBacklinksFull, previous),
+          aggregate: "sum",
+          positiveIsGood: false,
+        }),
+      },
+      charts: {
+        backlinks: {
+          current: inWindow(backlinksFull, current),
+          previous: inWindow(backlinksFull, previous),
+        },
+        referringDomains: {
+          current: inWindow(referringDomainsFull, current),
+          previous: inWindow(referringDomainsFull, previous),
+        },
+      },
+      refDomainsByAuthority: (latest?.refDomainsByAuthority ?? []) as AuthorityBucket[],
+      topRefDomains: (latest?.topRefDomains ?? []) as RefDomainRow[],
+      topAnchors: (latest?.topAnchors ?? []) as AnchorRow[],
+      topTlds: (latest?.topTlds ?? []) as TldRow[],
+    };
+
+    sendData(res, response, { range: current, compare: query.compare });
   } catch (error) {
     next(error);
   }

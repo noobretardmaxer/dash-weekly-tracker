@@ -68,3 +68,29 @@ export function getKeywordRankings(params: { sort?: string; search?: string; pag
 export function getCompetitors(): Promise<CompetitorRow[]> {
   return apiGet<{ data: CompetitorRow[] }>("/seo/competitors").then((res) => res.data);
 }
+
+export type AuthorityBucket = { range: string; count: number };
+export type RefDomainRow = { domain: string; authorityScore: number; backlinksCount: number };
+export type AnchorRow = { anchor: string; backlinksCount: number; domainsCount: number };
+export type TldRow = { tld: string; backlinksCount: number; domainsCount: number };
+
+export type BacklinksDetailResponse = {
+  kpis: {
+    backlinks: KpiMetric;
+    referringDomains: KpiMetric;
+    newBacklinks: KpiMetric;
+    lostBacklinks: KpiMetric;
+  };
+  charts: {
+    backlinks: SeriesWithCompare;
+    referringDomains: SeriesWithCompare;
+  };
+  refDomainsByAuthority: AuthorityBucket[];
+  topRefDomains: RefDomainRow[];
+  topAnchors: AnchorRow[];
+  topTlds: TldRow[];
+};
+
+export function getBacklinksDetail(params: { days: number }): Promise<BacklinksDetailResponse> {
+  return apiGet<{ data: BacklinksDetailResponse }>("/seo/backlinks", { days: params.days }).then((res) => res.data);
+}

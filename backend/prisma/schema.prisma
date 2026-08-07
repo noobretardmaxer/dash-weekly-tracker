@@ -234,6 +234,10 @@ model SeoMetric {
   topPages               Json
   fastestGrowingKeywords Json
   losingKeywords         Json
+  refDomainsByAuthority  Json     @default("[]")
+  topRefDomains          Json     @default("[]")
+  topAnchors             Json     @default("[]")
+  topTlds                Json     @default("[]")
   source                 String   @default("mock")
   createdAt              DateTime @default(now())
   updatedAt              DateTime @updatedAt
