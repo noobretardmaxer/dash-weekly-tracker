@@ -2,17 +2,20 @@ import type { DateRange, IntegrationModule } from "../shared/types";
 import { createSocialMockClient } from "./mock-client";
 import { normalize as normalizeRaw } from "./normalize";
 import { store as storeRecords } from "./store";
+import { isMockMode } from "../shared/mock-mode";
 import type { SocialNormalizedBundle, SocialRawPayload } from "./types";
 
-/**
- * Social Leaderboard (creators + their posts across platforms). No real
- * aggregation source is wired yet (a real version would combine per-platform
- * APIs — the Twitter integration plus future LinkedIn/Instagram/YouTube
- * clients), so this uses the fixture client. It runs on the scheduler + startup
- * backfill and reports through /admin/sync/status, so the Social Leaderboard
- * panel is populated in production instead of being empty everywhere.
- */
 export function createSocialIntegration(): IntegrationModule<SocialRawPayload, SocialNormalizedBundle> {
+  if (!isMockMode("social")) {
+    return {
+      name: "social",
+      authenticate: async () => {},
+      fetch: async (_range: DateRange) => ({ creators: [], capturedAt: new Date().toISOString() }) as unknown as SocialRawPayload,
+      normalize: async () => [],
+      store: async () => ({ count: 0 }),
+    };
+  }
+
   const client = createSocialMockClient();
 
   return {

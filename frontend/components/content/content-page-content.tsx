@@ -7,7 +7,6 @@ import { ChartCard } from "@/components/primitives/chart-card";
 import { KpiCard } from "@/components/primitives/kpi-card";
 import { DataTable } from "@/components/primitives/data-table";
 import { ContentToSignupsFlow } from "@/components/content/content-to-signups-flow";
-import { ErrorState } from "@/components/primitives/error-state";
 import { KpiCardSkeleton } from "@/components/primitives/skeletons/kpi-card-skeleton";
 import { ChartCardSkeleton } from "@/components/primitives/skeletons/chart-card-skeleton";
 import { TableSkeleton } from "@/components/primitives/skeletons/table-skeleton";
@@ -112,13 +111,9 @@ export function ContentPageContent() {
     return (
       <div className="space-y-6">
         <SectionHeader title="Content" description="Blog publishing cadence, traffic, and downstream conversions." />
-        <ErrorState
-          onRetry={() => {
-            overview.refetch();
-            trafficPosts.refetch();
-            topBlogsPosts.refetch();
-          }}
-        />
+        <div className="flex items-center justify-center rounded-lg border border-dashed border-border py-16 text-sm text-muted-foreground">
+          Need to fetch data
+        </div>
       </div>
     );
   }

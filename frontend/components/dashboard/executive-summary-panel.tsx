@@ -4,7 +4,6 @@ import { motion } from "framer-motion";
 import { AlertTriangle, CheckCircle2, Lightbulb, Sparkles } from "lucide-react";
 import { useDateRange } from "@/lib/hooks/use-date-range";
 import { useLatestReport } from "@/lib/hooks/queries/use-latest-report";
-import { ErrorState } from "@/components/primitives/error-state";
 import { ChartCardSkeleton } from "@/components/primitives/skeletons/chart-card-skeleton";
 import { cn } from "@/lib/utils";
 
@@ -48,7 +47,7 @@ function SummaryList({
 
 export function ExecutiveSummaryPanel() {
   const { label } = useDateRange();
-  const { data, isLoading, isError, refetch } = useLatestReport();
+  const { data, isLoading, isError } = useLatestReport();
 
   if (isLoading) {
     return (
@@ -61,7 +60,9 @@ export function ExecutiveSummaryPanel() {
   if (isError) {
     return (
       <div className="rounded-xl border border-border bg-card p-5 sm:p-6">
-        <ErrorState onRetry={() => refetch()} />
+        <div className="flex items-center justify-center rounded-lg border border-dashed border-border py-16 text-sm text-muted-foreground">
+          Need to fetch data
+        </div>
       </div>
     );
   }

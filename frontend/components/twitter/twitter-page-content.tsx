@@ -4,7 +4,6 @@ import { SectionHeader } from "@/components/primitives/section-header";
 import { SyncStatusBanner } from "@/components/primitives/sync-status-banner";
 import { ChartCard } from "@/components/primitives/chart-card";
 import { KpiCard } from "@/components/primitives/kpi-card";
-import { ErrorState } from "@/components/primitives/error-state";
 import { KpiCardSkeleton } from "@/components/primitives/skeletons/kpi-card-skeleton";
 import { ChartCardSkeleton } from "@/components/primitives/skeletons/chart-card-skeleton";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -41,7 +40,7 @@ function sumSeriesKpi(
 
 export function TwitterPageContent() {
   const { days } = useDateRange();
-  const { data, isLoading, isError, refetch } = useTwitterOverview({ days });
+  const { data, isLoading, isError } = useTwitterOverview({ days });
 
   if (isLoading) {
     return (
@@ -82,7 +81,9 @@ export function TwitterPageContent() {
     return (
       <div className="space-y-6">
         <SectionHeader title="Twitter / X" description="Audience growth, engagement, and reach on Twitter/X." />
-        <ErrorState onRetry={() => refetch()} />
+        <div className="flex items-center justify-center rounded-lg border border-dashed border-border py-16 text-sm text-muted-foreground">
+          Need to fetch data
+        </div>
       </div>
     );
   }

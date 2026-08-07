@@ -4,7 +4,6 @@ import { useMemo, useState } from "react";
 import { SectionHeader } from "@/components/primitives/section-header";
 import { SyncStatusBanner } from "@/components/primitives/sync-status-banner";
 import { DataTable } from "@/components/primitives/data-table";
-import { ErrorState } from "@/components/primitives/error-state";
 import { TableSkeleton } from "@/components/primitives/skeletons/table-skeleton";
 import { buildRedditColumns } from "@/components/reddit/reddit-columns";
 import { RedditDetailDrawer } from "@/components/reddit/reddit-detail-drawer";
@@ -13,7 +12,7 @@ import { useUpdateRedditMention } from "@/lib/hooks/mutations/use-update-reddit-
 import type { RedditMentionRow } from "@/lib/api/reddit";
 
 export function RedditPageContent() {
-  const { data, isLoading, isError, refetch } = useRedditMentions();
+  const { data, isLoading, isError } = useRedditMentions();
   const updateMention = useUpdateRedditMention();
   const [selectedRow, setSelectedRow] = useState<RedditMentionRow | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -71,7 +70,9 @@ export function RedditPageContent() {
           title="Reddit Intelligence"
           description="Triage HydraDB mentions across Reddit like a CRM pipeline."
         />
-        <ErrorState onRetry={() => refetch()} />
+        <div className="flex items-center justify-center rounded-lg border border-dashed border-border py-16 text-sm text-muted-foreground">
+          Need to fetch data
+        </div>
       </div>
     );
   }

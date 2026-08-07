@@ -3,7 +3,6 @@
 import { useMemo } from "react";
 import { usePostHogDashboard } from "@/lib/hooks/queries/use-posthog-dashboard";
 import { SectionHeader } from "@/components/primitives/section-header";
-import { ErrorState } from "@/components/primitives/error-state";
 import { ChartCardSkeleton } from "@/components/primitives/skeletons/chart-card-skeleton";
 import { PostHogTileRenderer } from "./posthog-tile-renderer";
 import type { PostHogTile } from "@/lib/api/posthog-dashboards";
@@ -38,7 +37,7 @@ export function PostHogDashboardPage({
   title: string;
   description: string;
 }) {
-  const { data, isLoading, isError, refetch } = usePostHogDashboard(dashboardId);
+  const { data, isLoading, isError } = usePostHogDashboard(dashboardId);
 
   const sortedTiles = useMemo(
     () => (data ? sortTilesByLayout(data.tiles) : []),
@@ -58,10 +57,9 @@ export function PostHogDashboardPage({
     return (
       <div className="space-y-6">
         <SectionHeader title={title} description={description} />
-        <ErrorState
-          description="Failed to load dashboard data from PostHog."
-          onRetry={() => refetch()}
-        />
+        <div className="flex items-center justify-center rounded-lg border border-dashed border-border py-16 text-sm text-muted-foreground">
+          Need to fetch data
+        </div>
       </div>
     );
   }

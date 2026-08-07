@@ -10,7 +10,7 @@ const envSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   MOCK_MODE: z
     .enum(["true", "false"])
-    .default("true")
+    .default("false")
     .transform((v) => v === "true"),
 
   DATABASE_URL: z.string().min(1, "DATABASE_URL is required"),
