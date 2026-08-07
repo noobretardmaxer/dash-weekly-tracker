@@ -9,10 +9,12 @@ import { ChartCardSkeleton } from "@/components/primitives/skeletons/chart-card-
 import { TableSkeleton } from "@/components/primitives/skeletons/table-skeleton";
 import { AppLineChart } from "@/components/charts/line-chart";
 import { AppBarChart } from "@/components/charts/bar-chart";
+import { EmptyState } from "@/components/primitives/empty-state";
 import { useDateRange } from "@/lib/hooks/use-date-range";
 import { useBacklinksDetail } from "@/lib/hooks/queries/use-backlinks-detail";
 import type { RefDomainRow, AnchorRow, TldRow } from "@/lib/api/seo";
 import { formatCompactNumber } from "@/lib/utils/format";
+import { Link2 } from "lucide-react";
 
 const refDomainColumns: ColumnDef<RefDomainRow, unknown>[] = [
   { accessorKey: "domain", header: "Domain" },
@@ -78,9 +80,11 @@ export function BacklinksDetail() {
 
   if (isError || !data) {
     return (
-      <div className="flex items-center justify-center rounded-lg border border-dashed border-border py-16 text-sm text-muted-foreground">
-        Need to fetch data
-      </div>
+      <EmptyState
+        icon={Link2}
+        title="No backlinks data yet"
+        description="Data will appear after the SEMrush sync completes. Trigger a manual sync via POST /api/v1/admin/sync/semrush if this is a fresh deploy."
+      />
     );
   }
 

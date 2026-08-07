@@ -9,11 +9,13 @@ import { ChartCardSkeleton } from "@/components/primitives/skeletons/chart-card-
 import { TableSkeleton } from "@/components/primitives/skeletons/table-skeleton";
 import { AppLineChart } from "@/components/charts/line-chart";
 import { AppBarChart } from "@/components/charts/bar-chart";
+import { EmptyState } from "@/components/primitives/empty-state";
 import { useDateRange } from "@/lib/hooks/use-date-range";
 import { useSeoOverview } from "@/lib/hooks/queries/use-seo-overview";
 import { useKeywordRankings } from "@/lib/hooks/queries/use-keyword-rankings";
 import type { SeoTopPage, KeywordRankingRow } from "@/lib/api/seo";
 import { formatCompactNumber, formatPercent } from "@/lib/utils/format";
+import { TrendingUp } from "lucide-react";
 
 const topPagesColumns: ColumnDef<SeoTopPage, unknown>[] = [
   { accessorKey: "page", header: "Page" },
@@ -67,11 +69,11 @@ export function SeoOverview() {
 
   if (isError || !data) {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-center rounded-lg border border-dashed border-border py-16 text-sm text-muted-foreground">
-          Need to fetch data
-        </div>
-      </div>
+      <EmptyState
+        icon={TrendingUp}
+        title="No SEO data yet"
+        description="Data will appear after the SEMrush sync completes. Trigger a manual sync via POST /api/v1/admin/sync/semrush if this is a fresh deploy."
+      />
     );
   }
 
@@ -167,9 +169,7 @@ export function SeoOverview() {
           {isTopKeywordsLoading ? (
             <TableSkeleton />
           ) : isTopKeywordsError || !topKeywords ? (
-            <div className="flex items-center justify-center rounded-lg border border-dashed border-border py-16 text-sm text-muted-foreground">
-              Need to fetch data
-            </div>
+            <EmptyState title="No keyword data yet" description="Keyword rankings will appear after the next SEMrush sync." />
           ) : (
             <DataTable
               columns={topKeywordsColumns}
