@@ -27,7 +27,7 @@ type SearchAnalyticsResponse = {
 
 /**
  * Real Google Search Console integration, built against the documented
- * Search Console API v1 `searchanalytics.query` endpoint.
+ * Webmasters API v3 `searchAnalytics/query` endpoint.
  * https://developers.google.com/webmaster-tools/v1/searchanalytics/query
  */
 export function createGscClient(): GscClient {
@@ -65,7 +65,7 @@ export function createGscClient(): GscClient {
       const { token } = await jwtClient.getAccessToken();
       const siteUrl = encodeURIComponent(env.GSC_SITE_URL ?? "");
       const { data } = await http.post<SearchAnalyticsResponse>(
-        `/webmasters/v1/sites/${siteUrl}/searchAnalytics/query`,
+        `/webmasters/v3/sites/${siteUrl}/searchAnalytics/query`,
         { startDate, endDate, dimensions, rowLimit },
         { headers: { Authorization: `Bearer ${token ?? ""}` } }
       );
