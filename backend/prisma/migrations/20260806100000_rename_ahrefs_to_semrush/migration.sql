@@ -1,10 +1,16 @@
--- Rename the "ahrefs" enum value to "semrush" in IntegrationName
-ALTER TYPE "IntegrationName" ADD VALUE IF NOT EXISTS 'semrush';
+-- Rename the "ahrefs" enum value to "semrush" in IntegrationName.
+-- PostgreSQL forbids using a newly-added enum value in the same transaction,
+-- so we recreate the type entirely instead of ADD VALUE + UPDATE.
 
--- Update any existing sync_logs rows that reference 'ahrefs'
-UPDATE "sync_logs" SET "integration" = 'semrush' WHERE "integration" = 'ahrefs';
+CREATE TYPE "IntegrationName_new" AS ENUM ('posthog', 'gsc', 'semrush', 'twitter', 'discord', 'reddit', 'blog', 'social');
 
--- Postgres does not support DROP VALUE from an enum directly.
--- The old 'ahrefs' value is now unused; it remains in the enum but is
--- harmless since no code path writes it. A full enum recreation would
--- require recreating the column, which is not worth the downtime risk.
+ALTER TABLE "sync_logs"
+  ALTER COLUMN "integration" TYPE "IntegrationName_new"
+  USING (
+    CASE WHEN "integration"::text = 'ahrefs' THEN 'semrush'::"IntegrationName_new"
+         ELSE "integration"::text::"IntegrationName_new"
+    END
+  );
+
+DROP TYPE "IntegrationName";
+ALTER TYPE "IntegrationName_new" RENAME TO "IntegrationName";
