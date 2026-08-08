@@ -38,7 +38,7 @@ export function isMockMode(integration: IntegrationKey): boolean {
   if (!HAS_CREDENTIALS[integration]()) {
     logger.warn(
       { integration },
-      "MOCK_MODE=false and required credentials are missing; integration will return no data"
+      "Required credentials missing; integration will be skipped"
     );
     return false;
   }
