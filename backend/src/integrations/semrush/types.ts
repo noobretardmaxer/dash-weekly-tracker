@@ -17,7 +17,7 @@ export type CompetitorProfileRow = {
   competitorDomain: string;
   organicTraffic: number;
   organicKeywords: number;
-  domainRating: number;
+  authorityScore: number;
   backlinks: number;
 };
 
@@ -29,7 +29,7 @@ export type AuthorityBucket = { range: string; count: number };
 export type SemrushRawPayload = {
   organicTraffic: number;
   organicKeywords: number;
-  domainRating: number;
+  authorityScore: number;
   backlinks: number;
   referringDomains: number;
   newBacklinks: number;
@@ -54,7 +54,7 @@ export type SeoMetricRecord = {
   date: Date;
   organicTraffic: number;
   organicKeywords: number;
-  domainRating: number;
+  authorityScore: number;
   backlinks: number;
   referringDomains: number;
   newBacklinks: number;
@@ -66,7 +66,9 @@ export type SeoMetricRecord = {
   topRefDomains: RefDomainRow[];
   topAnchors: AnchorRow[];
   topTlds: TldRow[];
-  source: "semrush" | "mock";
+  // SEO data is always real Semrush now — the mock client was removed. Kept as a
+  // literal (not a union) so reintroducing a "mock" source fails typecheck.
+  source: "semrush";
 };
 
 export type KeywordRankingRecord = {
@@ -87,7 +89,7 @@ export type CompetitorMetricRecord = {
   date: Date;
   organicTraffic: number;
   organicKeywords: number;
-  domainRating: number;
+  authorityScore: number;
   backlinks: number;
 };
 

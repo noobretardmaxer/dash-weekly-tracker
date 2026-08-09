@@ -13,7 +13,7 @@ function todayAtMidnight(): Date {
 
 export async function normalize(
   raw: SemrushRawPayload,
-  source: "semrush" | "mock"
+  source: "semrush"
 ): Promise<SemrushNormalizedBundle[]> {
   const date = todayAtMidnight();
 
@@ -21,7 +21,7 @@ export async function normalize(
     date,
     organicTraffic: raw.organicTraffic,
     organicKeywords: raw.organicKeywords,
-    domainRating: raw.domainRating,
+    authorityScore: raw.authorityScore,
     backlinks: raw.backlinks,
     referringDomains: raw.referringDomains,
     newBacklinks: raw.newBacklinks,
@@ -46,7 +46,7 @@ export async function normalize(
     date,
     organicTraffic: profile.organicTraffic,
     organicKeywords: profile.organicKeywords,
-    domainRating: profile.domainRating,
+    authorityScore: profile.authorityScore,
     backlinks: profile.backlinks,
   }));
 

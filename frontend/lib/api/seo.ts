@@ -14,6 +14,7 @@ export type KeywordRankingRow = {
   clicks: number;
   ctr: number;
   landingPage: string;
+  checkedAt?: string;
 };
 
 export type CompetitorRow = {
@@ -21,7 +22,7 @@ export type CompetitorRow = {
   date: string;
   organicTraffic: number;
   organicKeywords: number;
-  domainRating: number;
+  authorityScore: number;
   backlinks: number;
 };
 
@@ -31,7 +32,7 @@ export type SeoOverviewResponse = {
   kpis: {
     organicTraffic: KpiMetric;
     organicKeywords: KpiMetric;
-    domainRating: KpiMetric;
+    authorityScore: KpiMetric;
     backlinks: KpiMetric;
     referringDomains: KpiMetric;
     lostBacklinks: KpiMetric;
@@ -40,7 +41,7 @@ export type SeoOverviewResponse = {
   charts: {
     organicTraffic: SeriesWithCompare;
     organicKeywords: SeriesWithCompare;
-    domainRating: SeriesWithCompare;
+    authorityScore: SeriesWithCompare;
     backlinks: SeriesWithCompare;
     referringDomains: SeriesWithCompare;
     newBacklinks: SeriesWithCompare;
@@ -51,6 +52,8 @@ export type SeoOverviewResponse = {
     fastestGrowingKeywords: KeywordMovement[];
     losingKeywords: KeywordMovement[];
   };
+  source: string;
+  asOf: string | null;
 };
 
 export function getSeoOverview(params: { days: number }): Promise<SeoOverviewResponse> {
@@ -89,6 +92,8 @@ export type BacklinksDetailResponse = {
   topRefDomains: RefDomainRow[];
   topAnchors: AnchorRow[];
   topTlds: TldRow[];
+  source: string;
+  asOf: string | null;
 };
 
 export function getBacklinksDetail(params: { days: number }): Promise<BacklinksDetailResponse> {

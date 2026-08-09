@@ -6,7 +6,9 @@ export type IntegrationKey = "posthog" | "gsc" | "semrush" | "twitter" | "discor
 const PER_INTEGRATION_OVERRIDE: Record<IntegrationKey, boolean | undefined> = {
   posthog: env.POSTHOG_MOCK_MODE,
   gsc: env.GSC_MOCK_MODE,
-  semrush: env.SEMRUSH_MOCK_MODE,
+  // SEO is real-data-only (no Semrush mock client); isMockMode("semrush") is never
+  // called, but the key is required for Record<IntegrationKey> completeness.
+  semrush: undefined,
   twitter: env.TWITTER_MOCK_MODE,
   discord: env.DISCORD_MOCK_MODE,
   reddit: env.REDDIT_MOCK_MODE,

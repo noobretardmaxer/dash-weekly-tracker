@@ -1,7 +1,7 @@
 import { randomUUID } from "crypto";
 import { prisma } from "../../db/prisma-client";
 import { logger } from "../../lib/logger";
-import { CircuitOpenError, IntegrationFetchError } from "../../lib/errors";
+import { CircuitOpenError, IntegrationFetchError, IntegrationNotConfiguredError } from "../../lib/errors";
 import { withRetry } from "../../lib/retry";
 import { getCircuitBreaker } from "./circuit-breaker";
 import type { DateRange, IntegrationModule } from "./types";
@@ -72,9 +72,17 @@ export async function runIntegration<TRaw, TNormalized>(
     const finishedAt = new Date();
     const durationMs = finishedAt.getTime() - startedAt.getTime();
     const isCircuitOpen = error instanceof CircuitOpenError;
+    // A not-configured integration (e.g. no API key) is a skipped run, not a
+    // failure — record it as "degraded" and don't raise a sync-failure alert for
+    // something that was simply never set up.
+    const isNotConfigured = error instanceof IntegrationNotConfiguredError;
     const message = error instanceof Error ? error.message : String(error);
 
-    log.error({ err: error, durationMs }, "sync failed");
+    if (isNotConfigured) {
+      log.warn({ durationMs }, "sync skipped: integration not configured");
+    } else {
+      log.error({ err: error, durationMs }, "sync failed");
+    }
 
     await prisma.syncLog.create({
       data: {
@@ -84,7 +92,7 @@ export async function runIntegration<TRaw, TNormalized>(
         startedAt,
         finishedAt,
         durationMs,
-        status: isCircuitOpen ? "partial" : "failure",
+        status: isCircuitOpen || isNotConfigured ? "partial" : "failure",
         errorMessage: message,
       },
     });
@@ -97,12 +105,15 @@ export async function runIntegration<TRaw, TNormalized>(
     }
 
     // Surface the failure as an alert (UI + optional webhook) so a broken sync
-    // is visible instead of only living in sync_logs. Fire-and-forget.
-    recordSyncFailureAlert(module.name, message, { partial: isCircuitOpen }).catch((err) =>
-      log.error({ err }, "failed to record sync failure alert")
-    );
+    // is visible instead of only living in sync_logs. Fire-and-forget. Skip for a
+    // not-configured integration — that's expected until credentials are added.
+    if (!isNotConfigured) {
+      recordSyncFailureAlert(module.name, message, { partial: isCircuitOpen }).catch((err) =>
+        log.error({ err }, "failed to record sync failure alert")
+      );
+    }
 
-    if (!(error instanceof IntegrationFetchError) && !isCircuitOpen) {
+    if (!(error instanceof IntegrationFetchError) && !isCircuitOpen && !isNotConfigured) {
       throw error;
     }
 

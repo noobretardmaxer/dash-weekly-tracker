@@ -27,6 +27,18 @@ export class IntegrationFetchError extends AppError {
   }
 }
 
+/**
+ * Raised when an integration cannot run because it is not configured (e.g. a
+ * missing API key). Distinct from a fetch failure so the orchestrator can treat
+ * it as a skipped/degraded sync rather than a hard failure — no sync-failure
+ * alert is fired for an integration that was simply never set up.
+ */
+export class IntegrationNotConfiguredError extends AppError {
+  constructor(integration: string, message: string) {
+    super(`[${integration}] not configured: ${message}`, 501, "INTEGRATION_NOT_CONFIGURED");
+  }
+}
+
 export class CircuitOpenError extends AppError {
   constructor(integration: string) {
     super(`[${integration}] circuit breaker is open`, 503, "CIRCUIT_OPEN");

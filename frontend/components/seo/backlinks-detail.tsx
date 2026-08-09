@@ -10,6 +10,7 @@ import { TableSkeleton } from "@/components/primitives/skeletons/table-skeleton"
 import { AppLineChart } from "@/components/charts/line-chart";
 import { AppBarChart } from "@/components/charts/bar-chart";
 import { EmptyState } from "@/components/primitives/empty-state";
+import { DataSourceCaption } from "@/components/primitives/data-source-caption";
 import { useDateRange } from "@/lib/hooks/use-date-range";
 import { useBacklinksDetail } from "@/lib/hooks/queries/use-backlinks-detail";
 import type { RefDomainRow, AnchorRow, TldRow } from "@/lib/api/seo";
@@ -92,6 +93,7 @@ export function BacklinksDetail() {
 
   return (
     <div className="space-y-6">
+      <DataSourceCaption asOf={data.asOf} />
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {kpis.map((metric) => (
           <KpiCard key={metric.id} metric={metric} />

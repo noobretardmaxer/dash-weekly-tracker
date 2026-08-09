@@ -3,7 +3,7 @@
 import { AppBarChart } from "@/components/charts/bar-chart";
 import type { CompetitorProfile } from "@/lib/constants/competitors";
 
-type NumericCompetitorKey = "domainRating" | "backlinks" | "organicTraffic" | "organicKeywords";
+type NumericCompetitorKey = "authorityScore" | "backlinks" | "organicTraffic" | "organicKeywords";
 
 export function CompetitorOverviewChart({
   data,

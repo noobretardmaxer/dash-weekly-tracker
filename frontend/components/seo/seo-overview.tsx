@@ -10,6 +10,7 @@ import { TableSkeleton } from "@/components/primitives/skeletons/table-skeleton"
 import { AppLineChart } from "@/components/charts/line-chart";
 import { AppBarChart } from "@/components/charts/bar-chart";
 import { EmptyState } from "@/components/primitives/empty-state";
+import { DataSourceCaption } from "@/components/primitives/data-source-caption";
 import { useDateRange } from "@/lib/hooks/use-date-range";
 import { useSeoOverview } from "@/lib/hooks/queries/use-seo-overview";
 import { useKeywordRankings } from "@/lib/hooks/queries/use-keyword-rankings";
@@ -80,7 +81,7 @@ export function SeoOverview() {
   const cards = [
     data.kpis.organicTraffic,
     data.kpis.organicKeywords,
-    data.kpis.domainRating,
+    data.kpis.authorityScore,
     data.kpis.backlinks,
     data.kpis.referringDomains,
     data.kpis.lostBacklinks,
@@ -89,6 +90,7 @@ export function SeoOverview() {
 
   return (
     <div className="space-y-6">
+      <DataSourceCaption asOf={data.asOf} />
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {cards.map((metric) => (
           <KpiCard key={metric.id} metric={metric} />
