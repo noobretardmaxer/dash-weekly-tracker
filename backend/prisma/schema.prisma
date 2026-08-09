@@ -457,3 +457,163 @@ model CompetitorMetric {
   @@unique([competitorDomain, date])
   @@map("competitor_metrics")
 }
+
+// ---------------------------------------------------------------------------
+// Google Search Console pipeline (Phase 2)
+//
+// Design notes:
+// - Property-scoped: every row carries propertyId so the UI property switcher
+//   (sc-domain:hydradb.com vs https://hydradb.com/) is a real filter, not a hack.
+// - searchType lives on every metric row from day one (only 'web' is synced
+//   initially) so adding Image/Video/News/Discover never needs a re-backfill.
+// - String columns (not Postgres enums) for type/searchType/dimension/status/
+//   errorCode/dataState: this repo has hit enum-migration breakage before, and
+//   these evolve; allowed values are enforced in code (zod + TS unions).
+// - ctr is stored as the RAW fraction (0..1) exactly as GSC returns it; position
+//   as returned. Range rollups are recomputed (CTR = Σclicks/Σimpressions,
+//   position = impression-weighted mean) in the read layer — never averaged.
+// - dimensionValue / url can be long (page URLs); their uniqueness keys use an
+//   md5 hash column to stay under Postgres' btree index row-size limit.
+// - These tables run ALONGSIDE the legacy search_console_metrics table until the
+//   two readers (search-console + dashboard routes) are migrated in Phase 3.
+// ---------------------------------------------------------------------------
+
+model GscProperty {
+  id              String   @id @default(uuid())
+  siteUrl         String   @unique // 'sc-domain:hydradb.com' | 'https://hydradb.com/'
+  type            String // 'domain' | 'url_prefix'
+  displayName     String
+  permissionLevel String? // from sites.list (siteFullUser, siteOwner, ...)
+  isDefault       Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  dailyTotals    GscDailyTotal[]
+  dimensionDaily GscDimensionDaily[]
+  syncRuns       GscSyncRun[]
+  sitemaps       GscSitemap[]
+  urlIndexStatus GscUrlIndexStatus[]
+
+  @@map("gsc_properties")
+}
+
+model GscSyncRun {
+  id             String      @id @default(uuid())
+  propertyId     String
+  property       GscProperty @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  jobType        String // 'backfill' | 'daily' | 'inspect' | 'crux' | 'sitemaps'
+  status         String // 'running' | 'success' | 'partial' | 'failed'
+  startedAt      DateTime    @default(now())
+  finishedAt     DateTime?
+  rowsWritten    Int         @default(0)
+  dateRangeStart DateTime?   @db.Date
+  dateRangeEnd   DateTime?   @db.Date
+  cursor         Json? // checkpoint for resumable backfill (dimension + startRow + last completed date)
+  errorCode      String? // GscErrorCode
+  errorMessage   String?
+  retryCount     Int         @default(0)
+  createdAt      DateTime    @default(now())
+
+  @@index([propertyId, jobType, startedAt])
+  @@index([jobType, startedAt])
+  @@map("gsc_sync_runs")
+}
+
+model GscDailyTotal {
+  propertyId  String
+  property    GscProperty @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  date        DateTime    @db.Date
+  searchType  String // 'web' | 'image' | 'video' | 'news' | 'discover'
+  clicks      Int
+  impressions Int
+  ctr         Float // raw fraction 0..1 as returned
+  position    Float
+  dataState   String      @default("final") // 'final' | 'provisional'
+  updatedAt   DateTime    @updatedAt
+
+  @@id([propertyId, date, searchType])
+  @@index([propertyId, searchType, date])
+  @@map("gsc_daily_totals")
+}
+
+model GscDimensionDaily {
+  propertyId         String
+  property           GscProperty @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  date               DateTime    @db.Date
+  searchType         String
+  dimension          String // 'query' | 'page' | 'country' | 'device' | 'search_appearance'
+  dimensionValue     String
+  dimensionValueHash String // md5(dimensionValue) — bounds the PK/index size for long URLs
+  clicks             Int
+  impressions        Int
+  ctr                Float
+  position           Float
+  dataState          String      @default("final")
+  updatedAt          DateTime    @updatedAt
+
+  @@id([propertyId, date, searchType, dimension, dimensionValueHash])
+  @@index([propertyId, dimension, date])
+  @@index([propertyId, dimension, searchType, date])
+  @@map("gsc_dimension_daily")
+}
+
+model GscSitemap {
+  id              String      @id @default(uuid())
+  propertyId      String
+  property        GscProperty @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  path            String
+  lastSubmitted   DateTime?
+  lastDownloaded  DateTime?
+  isPending       Boolean     @default(false)
+  isSitemapsIndex Boolean     @default(false)
+  type            String?
+  warnings        Int         @default(0)
+  errors          Int         @default(0)
+  submittedUrls   Int         @default(0)
+  indexedUrls     Int         @default(0)
+  updatedAt       DateTime    @updatedAt
+
+  @@unique([propertyId, path])
+  @@map("gsc_sitemaps")
+}
+
+model GscUrlIndexStatus {
+  id              String      @id @default(uuid())
+  propertyId      String
+  property        GscProperty @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  url             String
+  urlHash         String // md5(url) — bounds the uniqueness index size
+  verdict         String? // PASS | PARTIAL | FAIL | NEUTRAL
+  coverageState   String? // 'Submitted and indexed', 'Crawled - currently not indexed', 'Not found (404)', ...
+  robotsTxtState  String?
+  indexingState   String?
+  pageFetchState  String?
+  googleCanonical String?
+  userCanonical   String?
+  lastCrawlTime   DateTime?
+  crawledAs       String?
+  isHttps         Boolean?
+  inspectedAt     DateTime    @default(now())
+
+  @@unique([propertyId, urlHash])
+  @@index([propertyId, coverageState])
+  @@map("gsc_url_index_status")
+}
+
+model CruxDaily {
+  id          String   @id @default(uuid())
+  originOrUrl String
+  scope       String // 'origin' | 'url'
+  formFactor  String // 'phone' | 'desktop'
+  date        DateTime @db.Date
+  lcpP75      Float?
+  inpP75      Float?
+  clsP75      Float?
+  ttfbP75     Float?
+  bucket      String? // 'good' | 'needs_improvement' | 'poor'
+  updatedAt   DateTime @updatedAt
+
+  @@unique([originOrUrl, formFactor, date])
+  @@index([formFactor, date])
+  @@map("crux_daily")
+}

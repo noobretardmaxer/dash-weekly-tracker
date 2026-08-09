@@ -1,5 +1,5 @@
-import { SearchConsolePageContent } from "@/components/search-console/search-console-page-content";
+import { GscOverview } from "@/components/search-console/gsc-overview";
 
-export default function SearchConsolePage() {
-  return <SearchConsolePageContent />;
+export default function SearchConsoleOverviewPage() {
+  return <GscOverview />;
 }

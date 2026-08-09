@@ -41,7 +41,10 @@ export const INTEGRATION_JOBS: IntegrationJobSpec[] = [
   { key: "twitter", name: "twitter-sync", cronExpr: HOURLY_CRON, createModule: createTwitterIntegration, rangeDays: 2, backfillDays: 2 },
   { key: "discord", name: "discord-sync", cronExpr: HOURLY_CRON, createModule: createDiscordIntegration, rangeDays: 2, backfillDays: 2 },
   { key: "reddit", name: "reddit-sync", cronExpr: HOURLY_CRON, createModule: createRedditIntegration, rangeDays: 2, backfillDays: 7 },
-  { key: "gsc", name: "gsc-sync", cronExpr: DAILY_CRON, createModule: createGscIntegration, rangeDays: 7, backfillDays: 90 },
+  // GSC syncs a trailing window on cron/startup (dataState=all, upserted). The
+  // one-time 16-month history load is the separate `npm run gsc:backfill`, so a
+  // worker restart never re-pulls 16 months. backfillDays == rangeDays on purpose.
+  { key: "gsc", name: "gsc-sync", cronExpr: DAILY_CRON, createModule: createGscIntegration, rangeDays: 5, backfillDays: 5 },
   { key: "semrush", name: "semrush-sync", cronExpr: DAILY_CRON, createModule: createSemrushIntegration, rangeDays: 1, backfillDays: 1 },
   // Blog + Social have no real third-party source yet (fixture data); they still
   // run as first-class daily jobs so the Content and Social Leaderboard panels
