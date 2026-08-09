@@ -74,11 +74,18 @@ async function seedIntegration(name: string, createModule: () => { authenticate(
   const integration = createModule();
   const range = { from: new Date(Date.now() - MASTER_SERIES_DAYS * 24 * 60 * 60 * 1000), to: new Date() };
 
-  await integration.authenticate();
-  const raw = await integration.fetch(range);
-  const normalized = await integration.normalize(raw);
-  const { count } = await integration.store(normalized);
-  console.log(`Seeded ${name}: ${count} records`);
+  // Seed each integration independently: a not-configured or failing one (e.g.
+  // Semrush with no API key — SEO is real-data-only, no mock) logs and is skipped
+  // rather than aborting the whole seed.
+  try {
+    await integration.authenticate();
+    const raw = await integration.fetch(range);
+    const normalized = await integration.normalize(raw);
+    const { count } = await integration.store(normalized);
+    console.log(`Seeded ${name}: ${count} records`);
+  } catch (error) {
+    console.warn(`Skipped ${name}: ${(error as Error).message}`);
+  }
 }
 
 async function main(): Promise<void> {

@@ -1,5 +1,6 @@
+import { isAxiosError } from "axios";
 import { createHttpClient } from "../shared/http-client";
-import { IntegrationFetchError } from "../../lib/errors";
+import { IntegrationFetchError, IntegrationNotConfiguredError } from "../../lib/errors";
 import { env } from "../../lib/env";
 import type {
   SemrushClient,
@@ -43,25 +44,65 @@ function num(val: string | undefined): number {
   return Number.isFinite(n) ? n : 0;
 }
 
+/**
+ * Runs a single named Semrush report and, on failure, rethrows an
+ * IntegrationFetchError tagged with the report name and HTTP status — so the
+ * sync log says "backlinks_overview: HTTP 403" instead of a bare stack trace,
+ * and you can tell which report broke. Never retried at this layer; the shared
+ * http-client only retries network/5xx, never a 4xx like 403.
+ */
+async function withReport<T>(report: string, fn: () => Promise<T>): Promise<T> {
+  try {
+    return await fn();
+  } catch (error) {
+    const status = isAxiosError(error) ? error.response?.status : undefined;
+    const suffix = status !== undefined ? ` HTTP ${status}` : "";
+    throw new IntegrationFetchError("semrush", `${report}${suffix}: ${(error as Error).message}`);
+  }
+}
+
 export function createSemrushClient(): SemrushClient {
   const http = createHttpClient("https://api.semrush.com", {
     Accept: "text/plain",
   });
-  const apiKey = env.SEMRUSH_API_KEY ?? "";
+  // Trim to defend against a trailing newline/space from a copy-pasted .env value,
+  // which otherwise sends `?key=<KEY>\n` and 403s.
+  const apiKey = (env.SEMRUSH_API_KEY ?? "").trim();
   const target = env.SEMRUSH_TARGET;
   const database = env.SEMRUSH_DATABASE;
 
-  async function authenticate(): Promise<void> {
-    if (!env.SEMRUSH_API_KEY) {
-      throw new IntegrationFetchError("semrush", "SEMRUSH_API_KEY not configured");
+  /**
+   * Free (non-unit-consuming) endpoint that both validates the key and returns
+   * the remaining API unit balance. Semrush returns a bare integer on success or
+   * an "ERROR nn :: ..." string on an invalid key.
+   */
+  async function checkApiUnits(): Promise<number> {
+    const res = await http.get<string>("/users/countapiunits.html", {
+      params: { key: apiKey },
+      responseType: "text",
+    });
+    const text = String(res.data).trim();
+    const balance = Number(text);
+    if (!Number.isFinite(balance)) {
+      // Invalid/forbidden key — Semrush returns "ERROR 135 :: ..." here.
+      throw new IntegrationFetchError("semrush", `unit check failed: ${text.slice(0, 120)}`);
     }
-    try {
-      await http.get("/", {
-        params: { type: "domain_ranks", key: apiKey, domain: target, database },
-        responseType: "text",
-      });
-    } catch (error) {
-      throw new IntegrationFetchError("semrush", (error as Error).message);
+    return balance;
+  }
+
+  async function authenticate(): Promise<void> {
+    if (!apiKey) {
+      // Not a fetch failure — the integration was simply never configured. The
+      // orchestrator treats this as skipped (no sync-failure alert) and the UI
+      // shows an honest empty state.
+      throw new IntegrationNotConfiguredError("semrush", "SEMRUSH_API_KEY not set");
+    }
+    // Preflight the unit balance so a zero balance fails fast with a clear message
+    // instead of 403-ing every report and burning the run. Never retry a 403 — it
+    // is a config error, not transient.
+    const balance = await withReport("countapiunits", checkApiUnits);
+    if (balance <= 0) {
+      throw new IntegrationFetchError("semrush", `no API units remaining (balance ${balance})`);
     }
   }
 
@@ -205,7 +246,7 @@ export function createSemrushClient(): SemrushClient {
           competitorDomain: name,
           organicTraffic: overview.organicTraffic,
           organicKeywords: overview.organicKeywords,
-          domainRating: overview.authorityScore,
+          authorityScore: overview.authorityScore,
           backlinks: backlinks.total,
         };
       })
@@ -215,23 +256,25 @@ export function createSemrushClient(): SemrushClient {
   async function fetch(_range: { from: Date; to: Date }): Promise<SemrushRawPayload> {
     try {
       const [overview, backlinks, organicRes, refDomains, anchors, tlds] = await Promise.all([
-        fetchDomainOverview(target),
-        fetchBacklinksOverview(target),
-        http.get<string>("/", {
-          params: {
-            type: "domain_organic",
-            key: apiKey,
-            domain: target,
-            database,
-            display_limit: 50,
-            display_sort: "tr_desc",
-            export_columns: "Ph,Po,Pp,Nq,Kd,Tr,Ur",
-          },
-          responseType: "text",
-        }),
-        fetchBacklinksRefdomains(target),
-        fetchBacklinksAnchors(target),
-        fetchBacklinksTld(target),
+        withReport("domain_ranks", () => fetchDomainOverview(target)),
+        withReport("backlinks_overview", () => fetchBacklinksOverview(target)),
+        withReport("domain_organic", () =>
+          http.get<string>("/", {
+            params: {
+              type: "domain_organic",
+              key: apiKey,
+              domain: target,
+              database,
+              display_limit: 50,
+              display_sort: "tr_desc",
+              export_columns: "Ph,Po,Pp,Nq,Kd,Tr,Ur",
+            },
+            responseType: "text",
+          })
+        ),
+        withReport("backlinks_refdomains", () => fetchBacklinksRefdomains(target)),
+        withReport("backlinks_anchors", () => fetchBacklinksAnchors(target)),
+        withReport("backlinks_tld", () => fetchBacklinksTld(target)),
       ]);
 
       const organicRows = parseCsv(organicRes.data);
@@ -286,12 +329,12 @@ export function createSemrushClient(): SemrushClient {
         .slice(0, 6)
         .map((k) => ({ keyword: k.keyword, positionChange: k.movement, currentPosition: k.currentPosition }));
 
-      const competitorProfiles = await fetchCompetitorProfiles();
+      const competitorProfiles = await withReport("competitors", fetchCompetitorProfiles);
 
       return {
         organicTraffic: overview.organicTraffic,
         organicKeywords: overview.organicKeywords,
-        domainRating: overview.authorityScore,
+        authorityScore: overview.authorityScore,
         backlinks: backlinks.total,
         referringDomains: backlinks.referringDomains,
         newBacklinks: backlinks.newBacklinks,
@@ -307,6 +350,9 @@ export function createSemrushClient(): SemrushClient {
         topTlds: tlds,
       };
     } catch (error) {
+      // Report-level failures are already tagged (report name + HTTP status) by
+      // withReport; pass them through untouched. Only wrap anything else.
+      if (error instanceof IntegrationFetchError) throw error;
       throw new IntegrationFetchError("semrush", (error as Error).message);
     }
   }

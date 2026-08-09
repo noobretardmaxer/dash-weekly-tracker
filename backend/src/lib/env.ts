@@ -41,10 +41,10 @@ const envSchema = z.object({
   GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY: z.string().optional(),
   GSC_MOCK_MODE: boolFromEnv,
 
+  // SEO is real-data-only — there is no Semrush mock client, so no SEMRUSH_MOCK_MODE.
   SEMRUSH_API_KEY: z.string().optional(),
   SEMRUSH_TARGET: z.string().default("hydradb.com"),
   SEMRUSH_DATABASE: z.string().default("us"),
-  SEMRUSH_MOCK_MODE: boolFromEnv,
 
   TWITTER_BEARER_TOKEN: z.string().optional(),
   TWITTER_USERNAME: z.string().default("hydradb"),

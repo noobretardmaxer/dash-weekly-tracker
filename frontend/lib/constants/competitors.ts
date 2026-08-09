@@ -1,6 +1,6 @@
 export type CompetitorProfile = {
   name: string;
-  domainRating: number;
+  authorityScore: number;
   backlinks: number;
   organicTraffic: number;
   organicKeywords: number;

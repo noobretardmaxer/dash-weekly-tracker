@@ -58,11 +58,11 @@ export function generateTimeSeries({
 export const FIXTURE_SEEDS = {
   posthog: 1001,
   gsc: 1003,
-  semrush: 1002,
+  // semrush (1002) / keywords (1008) removed with the Semrush mock client — SEO is
+  // real-data-only now (no mock fallback).
   twitter: 1005,
   discord: 1006,
   reddit: 1007,
-  keywords: 1008,
   content: 1004,
   social: 1009,
 } as const;

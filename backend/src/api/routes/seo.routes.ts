@@ -34,14 +34,14 @@ seoRouter.get("/", validateQuery(seoOverviewQuerySchema), async (req, res, next)
     });
 
     const buildChart = (
-      key: "organicTraffic" | "organicKeywords" | "domainRating" | "backlinks" | "referringDomains" | "newBacklinks" | "lostBacklinks"
+      key: "organicTraffic" | "organicKeywords" | "authorityScore" | "backlinks" | "referringDomains" | "newBacklinks" | "lostBacklinks"
     ) => {
       const full = toSeries(rows, key);
       return { current: inWindow(full, current), previous: inWindow(full, previous) };
     };
 
     const organicTrafficFull = toSeries(rows, "organicTraffic");
-    const domainRatingFull = toSeries(rows, "domainRating");
+    const authorityScoreFull = toSeries(rows, "authorityScore");
     const organicKeywordsFull = toSeries(rows, "organicKeywords");
     const backlinksFull = toSeries(rows, "backlinks");
     const referringDomainsFull = toSeries(rows, "referringDomains");
@@ -70,12 +70,12 @@ seoRouter.get("/", validateQuery(seoOverviewQuerySchema), async (req, res, next)
           aggregate: "last",
           positiveIsGood: true,
         }),
-        domainRating: buildKpiMetric({
-          id: "domain-rating",
-          label: "Domain Rating",
+        authorityScore: buildKpiMetric({
+          id: "authority-score",
+          label: "Authority Score",
           format: "number",
-          current: inWindow(domainRatingFull, current),
-          previous: inWindow(domainRatingFull, previous),
+          current: inWindow(authorityScoreFull, current),
+          previous: inWindow(authorityScoreFull, previous),
           aggregate: "average",
           positiveIsGood: true,
         }),
@@ -119,7 +119,7 @@ seoRouter.get("/", validateQuery(seoOverviewQuerySchema), async (req, res, next)
       charts: {
         organicTraffic: buildChart("organicTraffic"),
         organicKeywords: buildChart("organicKeywords"),
-        domainRating: buildChart("domainRating"),
+        authorityScore: buildChart("authorityScore"),
         backlinks: buildChart("backlinks"),
         referringDomains: buildChart("referringDomains"),
         newBacklinks: buildChart("newBacklinks"),
@@ -130,9 +130,13 @@ seoRouter.get("/", validateQuery(seoOverviewQuerySchema), async (req, res, next)
         fastestGrowingKeywords: (latest?.fastestGrowingKeywords ?? []) as KeywordMovement[],
         losingKeywords: (latest?.losingKeywords ?? []) as KeywordMovement[],
       },
+      // Freshness/source so the UI can label the data and flag stale snapshots
+      // instead of passing off an old sync as current.
+      source: "semrush" as const,
+      asOf: latest?.date ?? null,
     };
 
-    sendData(res, response, { range: current, compare: query.compare });
+    sendData(res, response, { range: current, compare: query.compare, source: "semrush", asOf: latest?.date ?? null });
   } catch (error) {
     next(error);
   }
@@ -270,9 +274,11 @@ seoRouter.get("/backlinks", validateQuery(seoOverviewQuerySchema), async (req, r
       topRefDomains: (latest?.topRefDomains ?? []) as RefDomainRow[],
       topAnchors: (latest?.topAnchors ?? []) as AnchorRow[],
       topTlds: (latest?.topTlds ?? []) as TldRow[],
+      source: "semrush" as const,
+      asOf: latest?.date ?? null,
     };
 
-    sendData(res, response, { range: current, compare: query.compare });
+    sendData(res, response, { range: current, compare: query.compare, source: "semrush", asOf: latest?.date ?? null });
   } catch (error) {
     next(error);
   }
