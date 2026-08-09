@@ -37,6 +37,9 @@ const envSchema = z.object({
   POSTHOG_MOCK_MODE: boolFromEnv,
 
   GSC_SITE_URL: z.string().optional(),
+  // Preferred: base64 of the entire service-account JSON key file. Sidesteps all
+  // newline/quote escaping. Falls back to the EMAIL + PRIVATE_KEY pair below.
+  GOOGLE_SERVICE_ACCOUNT_B64: z.string().optional(),
   GOOGLE_SERVICE_ACCOUNT_EMAIL: z.string().optional(),
   GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY: z.string().optional(),
   GSC_MOCK_MODE: boolFromEnv,

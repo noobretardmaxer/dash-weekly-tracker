@@ -5,6 +5,7 @@ import { sendData } from "../utils/api-response";
 import { resolveDateRange, resolvePreviousWindow, type ResolvedDateRange } from "../utils/query-parser";
 import { dashboardOverviewQuerySchema, type DashboardOverviewQuery } from "../schemas/dashboard.schema";
 import { buildKpiMetric, type TimeSeriesPoint, type KpiMetric } from "../../services/analytics/growth";
+import { getDefaultPropertyDailyTotals } from "../../integrations/gsc/read";
 
 export const dashboardRouter = Router();
 
@@ -36,7 +37,9 @@ dashboardRouter.get("/", validateQuery(dashboardOverviewQuerySchema), async (req
     const [websiteRows, searchConsoleRows, seoRows, twitterRows, discordRows, redditCurrentCount, redditPreviousCount, topTenKeywordCount] =
       await Promise.all([
         prisma.websiteMetric.findMany({ where: { date: { gte: previous.from, lte: current.to } }, orderBy: { date: "asc" } }),
-        prisma.searchConsoleMetric.findMany({ where: { date: { gte: previous.from, lte: current.to } }, orderBy: { date: "asc" } }),
+        // Organic clicks / avg position now come from the property-scoped GSC
+        // pipeline (default property, web) instead of the legacy flat table.
+        getDefaultPropertyDailyTotals(previous.from, current.to),
         prisma.seoMetric.findMany({ where: { date: { gte: previous.from, lte: current.to } }, orderBy: { date: "asc" } }),
         prisma.twitterMetric.findMany({ where: { date: { gte: previous.from, lte: current.to } }, orderBy: { date: "asc" } }),
         prisma.discordMetric.findMany({ where: { date: { gte: previous.from, lte: current.to } }, orderBy: { date: "asc" } }),

@@ -18,7 +18,11 @@ const PER_INTEGRATION_OVERRIDE: Record<IntegrationKey, boolean | undefined> = {
 
 const HAS_CREDENTIALS: Record<IntegrationKey, () => boolean> = {
   posthog: () => Boolean(env.POSTHOG_API_KEY && env.POSTHOG_PROJECT_ID),
-  gsc: () => Boolean(env.GOOGLE_SERVICE_ACCOUNT_EMAIL && env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY && env.GSC_SITE_URL),
+  gsc: () =>
+    Boolean(
+      (env.GOOGLE_SERVICE_ACCOUNT_B64 || (env.GOOGLE_SERVICE_ACCOUNT_EMAIL && env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY)) &&
+        env.GSC_SITE_URL
+    ),
   semrush: () => Boolean(env.SEMRUSH_API_KEY),
   twitter: () => Boolean(env.TWITTER_BEARER_TOKEN),
   discord: () => Boolean(env.DISCORD_BOT_TOKEN && env.DISCORD_GUILD_ID),

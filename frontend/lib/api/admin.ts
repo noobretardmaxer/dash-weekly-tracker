@@ -1,4 +1,4 @@
-import { apiGet } from "./client";
+import { apiGet, apiPost } from "./client";
 
 export type SyncStatusValue = "success" | "failure" | "partial";
 
@@ -29,4 +29,10 @@ export type SyncStatusResponse = {
 // non-admins) as "status unavailable" and render nothing, not an error.
 export function getSyncStatus(): Promise<SyncStatusResponse> {
   return apiGet<{ data: SyncStatusResponse }>("/admin/sync/status").then((res) => res.data);
+}
+
+// Trigger a single integration's sync synchronously (the backend runs a trailing
+// incremental sync and returns the record count, or the classified error).
+export function triggerIntegrationSync(integration: string): Promise<{ data: { integration: string; recordsProcessed: number } }> {
+  return apiPost<{ data: { integration: string; recordsProcessed: number } }>(`/admin/sync/${integration}`, {});
 }

@@ -16,7 +16,11 @@
     "prisma:deploy": "prisma migrate deploy",
     "prisma:seed": "tsx prisma/seed.ts",
     "semrush:doctor": "node --env-file=.env --import tsx scripts/semrush-doctor.ts",
-    "docs:generate": "tsx scripts/generate-openapi.ts"
+    "docs:generate": "tsx scripts/generate-openapi.ts",
+    "gsc:doctor": "tsx scripts/gsc-doctor.ts",
+    "gsc:backfill": "tsx scripts/gsc-backfill.ts",
+    "gsc:daily": "tsx scripts/gsc-sync.ts",
+    "test": "DATABASE_URL=postgresql://test REDIS_URL=rediss://test node --import tsx --test \"src/**/*.test.ts\""
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
